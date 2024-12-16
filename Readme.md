@@ -1,15 +1,15 @@
 # ZJAX
 
-Zjax is a tiny Javascript library (4Kb gzipped) that makes it possible to add modern SPA-like interactivity to a website by sprinkling "z-tag" attributes onto plain HTML elements. By adding attributes such as `z-swap` or `z-action`, your HTML tags gain superpowers like the ability to swap out *parts of* of a web page or attaching client-side Javascript actions to DOM elements.
+ZJAX is a tiny Javascript library (4Kb gzipped) that makes it possible to add modern SPA-like interactivity to a website by sprinkling "z-tag" attributes onto plain HTML elements. Using attributes such as `z-swap` or `z-action` gives your HTML tags superpowers like the ability to swap out *parts of* of a web page or attaching client-side Javascript actions to DOM elements.
 
-Use Zjax with Rails, Laravel, Django, Astro, or any other SSR backend you like.
+Use ZJAX with Rails, Laravel, Django, Astro, or any other SSR backend you like. It is heavily inspired by HTMX, Unpoly, and Datastar with some powerful new concepts.
 
 ## Getting started
 
-Link Zjax from a CDN:
+Link ZJAX from a CDN:
 
 ```html
-<script src="https://unpkg.com/zjax@1.0"></script>
+<script src="https://unpkg.com/zjax@1.0.2"></script>
 ```
 
 ##### Now use z-tags anywhere
@@ -20,27 +20,43 @@ Z-tags aren't really tags – they're attributes that can be added to tags. But 
 
 # `z-swap`
 
-The main workhorse of Zjax is `z-swap` which is used to specify the elements we want to swap.
+The main workhorse of ZJAX is `z-swap` which is used to specify the elements we want to swap.
 
-You can try this right now:
+You can try this right now. Create two routes using your favorite SSR framework, or even just as plain HTML using a local web server (like the Live Server extension for VS Code).
+
+**index.html**
 
 ```html
 <html>
   <head>
-	  <script src="https://unpkg.com/zjax@1.0/zjax.js"></script>  
+		<script src="./src/zjax.js"></script>  
   </head>
   
   <body>
-    <a href="https://npmjs.com" z-swap="main">
-      Click me
-    </a>
-
-    <main>Nothing here yet.<main>
+    <h1>This is ZJAX</h1>
+    <section id="swapme">
+      <h3>What can ZJAX do for HTML?</h3>
+      <a href="/other.html" z-swap="#swapme">Click me</a>
+    </section>
   </body>
 </html>
 ```
 
-By adding the `z-swap` tag, this link will be hijacked by Zjax, replacing it's default behavior with an AJAX request which makes a GET request to npmjs.com. It then uses the `main` element found in the response to replace *only* the `main` element in our local DOM without affecting any other parts of the page. 
+
+
+**other.html**
+
+```html
+<html>
+  <body>
+    <h1 id="header">ZJAX gives HTML superpowers!</h1>
+  </body>
+</html>
+```
+
+
+
+By adding the `z-swap` tag, this link will be hijacked by ZJAX, replacing it's default behavior with an AJAX request which makes a GET request to npmjs.com. It then appends the `h1` element found in the response to the `#viewer` element in our local DOM without affecting any other parts of the page. 
 
 In this example, we provided only the element to be swapped without specifying the endpoint URL, the HTTP method, or the trigger event type. So these are inferred. By default, for an `a`-tag, `z-swap` uses the GET method and the endpoint inferred from `href` and will listen for the `click` event as its trigger.
 
@@ -62,7 +78,7 @@ Try prepending `@mouseover` to the `z-swap` value.
 </a>
 ```
 
-Any standard DOM event as well as some special ones added by Zjax and even custom events (more on this later) can be specified with an @-sign like `@submit`, `@blur`, `@input`, `@dblclick`, etc.
+Any standard DOM event as well as some special ones added by ZJAX and even custom events (more on this later) can be specified with an @-sign like `@submit`, `@blur`, `@input`, `@dblclick`, etc.
 
 ##### Specifying the Endpoint
 

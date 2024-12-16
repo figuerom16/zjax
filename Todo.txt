@@ -1,0 +1,5 @@
+- Add outer and inner options for source swap element
+
+- Add lots of console logging for debug mode
+
+- Emit events for zjaxSwap so that parsing can happen for newly added elements

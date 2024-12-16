@@ -1,0 +1,23 @@
+{
+  "name": "zjax",
+  "version": "1.0.2",
+  "description": "Zjax is a tiny Javascript library that makes it possible to add modern SPA-like interactivity to a website by sprinkling \"z-tag\" attributes onto plain HTML elements.",
+  "main": "dist/zjax.min.js",
+  "scripts": {
+    "minify": "terser zjax.js -o dist/zjax.min.js",
+    "size": "gzip -c dist/zjax.min.js | wc -c | awk '{print \"Gzipped and minified size: \" $1 / 1024 \" KB\"}'"
+  },
+  "files": [
+    "dist/zjax.min.js"
+  ],
+  "keywords": [
+    "htmx",
+    "hypermedia",
+    "ajax"
+  ],
+  "author": "Codepilot SF",
+  "license": "MIT",
+  "devDependencies": {
+    "terser": "^5.37.0"
+  }
+}
