@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="./dist/zjax.js"></script>
+  <script>
+    zjax.debug = true;
+    zjax.register('books', {
+      main($){
+        console.log('main', $);
+      }
+    })
+    console.log('zjax', zjax)
+  </script>
+  <title>Document</title>
+</head>
+<body>
+  <a href="./other.html" z-swap="@mouseover h2">click</a>
+  <h2>ZJAX!</h2>
+  <main></main>
+</body>
+</html>
