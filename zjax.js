@@ -3,7 +3,7 @@ window.zjax = getGlobalZjaxObject();
 
 // Parse the DOM on load.
 addEventListener("DOMContentLoaded", function () {
-  parseZSwaps();
+  parseZSwaps(document);
 });
 
 function getGlobalZjaxObject() {
@@ -36,8 +36,9 @@ function getGlobalZjaxObject() {
   };
 }
 
-function parseZSwaps() {
-  document.querySelectorAll("[z-swap]").forEach(function (el) {
+function parseZSwaps(documentOrNode) {
+  const zSwapNodes = getMatchingNodes(documentOrNode, "[z-swap]");
+  zSwapNodes.forEach(function (el) {
     try {
       const valueString = collapseCommas(el.getAttribute("z-swap"));
       const valueParts = valueString.split(/\s/);
@@ -76,6 +77,17 @@ function parseZSwaps() {
 }
 
 // Helper functions
+
+function getMatchingNodes(documentOrNode, selector) {
+  // Find all decendent elements with a z-swap attribute
+  const nodesToParse = [];
+  nodesToParse.push(...documentOrNode.querySelectorAll("[z-swap]"));
+  if (documentOrNode != document && documentOrNode.matches("[z-swap]")) {
+    // And include the element itself if it has a z-swap attribute
+    nodesToParse.push(documentOrNode);
+  }
+  return nodesToParse;
+}
 
 function getTrigger(triggerString, el) {
   if (triggerString) {
@@ -144,7 +156,6 @@ function getZSwapFunction(zSwap, el) {
     event.preventDefault();
     event.stopPropagation();
     if (zjax.debug) {
-      console.log("zjax", zSwap, el);
     }
     // Call the action
     try {
@@ -165,17 +176,23 @@ function getZSwapFunction(zSwap, el) {
       // Swap elements
       zSwap.swaps.forEach(function (swap) {
         const newNode = responseDOM.querySelector(swap.source);
-        if (!newNode) {
+        if (
+          !newNode &&
+          swap.swapType !== "none" &&
+          swap.swapType !== "delete"
+        ) {
           throw new Error(
             `Source element ${swap.source} does not exist in response DOM`
           );
         }
         const existingNode = document.querySelector(swap.target);
-        if (!existingNode) {
+        if (!existingNode && swap.swapType !== "none") {
           throw new Error(
             `Target element '${swap.target}' does not exist in local DOM`
           );
         }
+        // Before swapping in a new element, parse it for z-swaps
+        parseZSwaps(newNode);
         swapOneElement(existingNode, newNode, swap.swapType);
       });
     } catch (error) {
@@ -238,7 +255,7 @@ function attachMutationObserver(trigger, handler, el) {
         if (removedNode === el || removedNode.contains(el)) {
           // Remove event listener when the el is removed from DOM
           el.removeEventListener(trigger, handler);
-          console.log("Event listener removed because node is detached.");
+          // console.log("Event listener removed because node is detached.");
           observer.disconnect(); // Stop observing
           return;
         }

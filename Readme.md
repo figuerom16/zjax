@@ -1,15 +1,15 @@
 # ZJAX
 
-ZJAX is a tiny Javascript library (4Kb gzipped) that makes it possible to add modern SPA-like interactivity to a website by sprinkling "z-tag" attributes onto plain HTML elements. Using attributes such as `z-swap` or `z-action` gives your HTML tags superpowers like the ability to swap out *parts of* of a web page or attaching client-side Javascript actions to DOM elements.
+ZJAX is a tiny Javascript library (2Kb gzipped) that makes it possible to add modern SPA-like interactivity to a website by sprinkling "z-tag" attributes onto plain HTML elements. Using attributes such as `z-swap` or `z-action` gives your HTML tags superpowers including the ability to swap out *parts of* a web page or attach client-side Javascript actions to DOM elements.
 
-Use ZJAX with Rails, Laravel, Django, Astro, or any other SSR backend you like. It is heavily inspired by HTMX, Unpoly, and Datastar with some powerful new concepts.
+Use ZJAX with Rails, Laravel, Django, Astro, or any other SSR backend you like. It is heavily inspired by HTMX and Unpoly with some powerful new concepts.
 
 ## Getting started
 
 Link ZJAX from a CDN:
 
 ```html
-<script src="https://unpkg.com/zjax@1.0.2"></script>
+<script src="https://unpkg.com/zjax"></script>
 ```
 
 ##### Now use z-tags anywhere
@@ -20,7 +20,7 @@ Z-tags aren't really tags – they're attributes that can be added to tags. But 
 
 # `z-swap`
 
-The main workhorse of ZJAX is `z-swap` which is used to specify the elements we want to swap.
+The main workhorse of ZJAX is the `z-swap` attribute which can be added to any HTML tag to specify the elements we want to swap.
 
 You can try this right now. Create two routes using your favorite SSR framework, or even just as plain HTML using a local web server (like the Live Server extension for VS Code).
 

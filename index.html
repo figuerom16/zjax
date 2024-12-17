@@ -1,6 +1,8 @@
 <html>
   <head>
-		<script src="zjax.js"></script>  
+    <link rel="stylesheet" href="https://unpkg.com/tiny.css@0">
+		<!-- <script src="https://unpkg.com/zjax"></script> -->
+		<script src="zjax.js"></script>
     <style>
       ::view-transition-new(zjax-transition),
       ::view-transition-old(zjax-transition) {
@@ -12,9 +14,10 @@
   
   <body>
     <h1>This is ZJAX</h1>
-    <section id="swapme">
-      <h3>What can ZJAX do for HTML?</h3>
-      <a href="/other.html" z-swap="#swapme">Click me</a>
-    </section>
+    <p>This will be replaced by ZJAX.</p>
+    <a href="https://httpbin.org/html" z-swap="p">Fetch Moby Dick</a>
+    <div id="appendable">
+      <button z-swap=". button->#appendable|append">Append the h1</button>
+    </div>
   </body>
 </html>
