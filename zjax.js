@@ -3,6 +3,7 @@ window.zjax = getGlobalZjaxObject();
 
 // Parse the DOM on load.
 addEventListener("DOMContentLoaded", function () {
+  zjax.debug && debug("Parsing DOM");
   parseZSwaps(document);
 });
 
@@ -38,6 +39,12 @@ function getGlobalZjaxObject() {
 
 function parseZSwaps(documentOrNode) {
   const zSwapNodes = getMatchingNodes(documentOrNode, "[z-swap]");
+  zjax.debug &&
+    debug(
+      `Found ${zSwapNodes.length} z-swap nodes in ${
+        documentOrNode.tagName || "document"
+      }`
+    );
   zSwapNodes.forEach(function (el) {
     try {
       const valueString = collapseCommas(el.getAttribute("z-swap"));
@@ -67,6 +74,10 @@ function parseZSwaps(documentOrNode) {
       const zSwapFunction = getZSwapFunction(zSwap, el);
       attachEventListener(zSwap.trigger, zSwapFunction, el);
       attachMutationObserver(zSwap.trigger, zSwapFunction, el);
+      zjax.debug &&
+        debug(
+          `Added z-swap for '${zSwap.trigger}' events to ${prettyNodeName(el)}`
+        );
     } catch (error) {
       console.error(
         `ZJAX ERROR – Unable to parse z-swap: ${error.message}\n`,
@@ -77,6 +88,12 @@ function parseZSwaps(documentOrNode) {
 }
 
 // Helper functions
+
+function prettyNodeName(node) {
+  return (
+    "<" + node.tagName.toLowerCase() + (node.id ? "#" + node.id : "") + ">"
+  );
+}
 
 function getMatchingNodes(documentOrNode, selector) {
   // Find all decendent nodes with a z-swap attribute
@@ -155,8 +172,7 @@ function getZSwapFunction(zSwap, el) {
   return async function (event) {
     event.preventDefault();
     event.stopPropagation();
-    if (zjax.debug) {
-    }
+    zjax.debug && debug("z-swap triggered for", zSwap);
     // Call the action
     try {
       // Get formData?
@@ -166,13 +182,15 @@ function getZSwapFunction(zSwap, el) {
         body: null,
       });
       if (!response.ok) {
-        // Replace the entire HTML and follow redirects
+        // TODO: Replace the entire HTML and follow redirects
         return;
       }
       const responseDOM = new DOMParser().parseFromString(
         await response.text(),
         "text/html"
       );
+      zjax.debug &&
+        debug(`z-swap response from ${zSwap.endpoint} received and parsed`);
       // Swap nodes
       zSwap.swaps.forEach(function (swap) {
         const newNode = responseDOM.querySelector(swap.source);
@@ -192,6 +210,7 @@ function getZSwapFunction(zSwap, el) {
           );
         }
         // Before swapping in a new node, parse it for z-swaps
+        zjax.debug && debug(`Parsing incoming response for z-swaps`);
         parseZSwaps(newNode);
         swapOneNode(existingNode, newNode, swap.swapType);
       });
@@ -257,7 +276,12 @@ function attachMutationObserver(trigger, handler, el) {
         if (removedNode === el || removedNode.contains(el)) {
           // Remove event listener when the el is removed from DOM
           el.removeEventListener(trigger, handler);
-          // console.log("Event listener removed because node is detached.");
+          zjax.debug &&
+            debug(
+              `Removing event listener for ${prettyNodeName(
+                el
+              )} (no longer in DOM)`
+            );
           observer.disconnect(); // Stop observing
           return;
         }
@@ -272,4 +296,8 @@ function attachMutationObserver(trigger, handler, el) {
 function collapseCommas(str) {
   // If commas have spaces next to them, remove those spaces.
   return str.replace(/\s*,\s*/g, ",");
+}
+
+function debug() {
+  console.log("ZJAX DEBUG:", ...arguments);
 }
