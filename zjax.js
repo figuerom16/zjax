@@ -41,9 +41,9 @@ function parseZSwaps(documentOrNode) {
   const zSwapNodes = getMatchingNodes(documentOrNode, "[z-swap]");
   zjax.debug &&
     debug(
-      `Found ${zSwapNodes.length} z-swap nodes in ${
-        documentOrNode.tagName || "document"
-      }`
+      `Found ${zSwapNodes.length} z-swap nodes in ${prettyNodeName(
+        documentOrNode
+      )}`
     );
   zSwapNodes.forEach(function (el) {
     try {
@@ -89,10 +89,13 @@ function parseZSwaps(documentOrNode) {
 
 // Helper functions
 
-function prettyNodeName(node) {
-  return (
-    "<" + node.tagName.toLowerCase() + (node.id ? "#" + node.id : "") + ">"
-  );
+function prettyNodeName(nodeOrDocument) {
+  return nodeOrDocument === document
+    ? "#document"
+    : "<" +
+        nodeOrDocument.tagName.toLowerCase() +
+        (nodeOrDocument.id ? "#" + nodeOrDocument.id : "") +
+        ">";
 }
 
 function getMatchingNodes(documentOrNode, selector) {
