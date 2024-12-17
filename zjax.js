@@ -14,7 +14,7 @@ function getGlobalZjaxObject() {
       // Usage:
       // zjax.register({
       //   openPanel($) {
-      //     console.log('openPanel called by element', $.el);
+      //     console.log('openPanel called by node', $.el);
       //   }
       // })
       // An optional namespace can be specified as arg1 so that actions
@@ -63,7 +63,7 @@ function parseZSwaps(documentOrNode) {
         endpoint: getEndpoint(endpointString, el),
         swaps: getSwaps(swapString),
       };
-      // Add the swap function listener to the element
+      // Add the swap function listener to the node
       const zSwapFunction = getZSwapFunction(zSwap, el);
       attachEventListener(zSwap.trigger, zSwapFunction, el);
       attachMutationObserver(zSwap.trigger, zSwapFunction, el);
@@ -79,11 +79,11 @@ function parseZSwaps(documentOrNode) {
 // Helper functions
 
 function getMatchingNodes(documentOrNode, selector) {
-  // Find all decendent elements with a z-swap attribute
+  // Find all decendent nodes with a z-swap attribute
   const nodesToParse = [];
   nodesToParse.push(...documentOrNode.querySelectorAll("[z-swap]"));
   if (documentOrNode != document && documentOrNode.matches("[z-swap]")) {
-    // And include the element itself if it has a z-swap attribute
+    // And include the node itself if it has a z-swap attribute
     nodesToParse.push(documentOrNode);
   }
   return nodesToParse;
@@ -173,7 +173,7 @@ function getZSwapFunction(zSwap, el) {
         await response.text(),
         "text/html"
       );
-      // Swap elements
+      // Swap nodes
       zSwap.swaps.forEach(function (swap) {
         const newNode = responseDOM.querySelector(swap.source);
         if (
@@ -182,18 +182,18 @@ function getZSwapFunction(zSwap, el) {
           swap.swapType !== "delete"
         ) {
           throw new Error(
-            `Source element ${swap.source} does not exist in response DOM`
+            `Source node ${swap.source} does not exist in response DOM`
           );
         }
         const existingNode = document.querySelector(swap.target);
         if (!existingNode && swap.swapType !== "none") {
           throw new Error(
-            `Target element '${swap.target}' does not exist in local DOM`
+            `Target node '${swap.target}' does not exist in local DOM`
           );
         }
-        // Before swapping in a new element, parse it for z-swaps
+        // Before swapping in a new node, parse it for z-swaps
         parseZSwaps(newNode);
-        swapOneElement(existingNode, newNode, swap.swapType);
+        swapOneNode(existingNode, newNode, swap.swapType);
       });
     } catch (error) {
       console.error(
@@ -204,8 +204,10 @@ function getZSwapFunction(zSwap, el) {
   };
 }
 
-function swapOneElement(existingNode, newNode, swapType) {
-  existingNode.style.viewTransitionName = "zjax-transition";
+let transitionIndex = 0;
+function swapOneNode(existingNode, newNode, swapType) {
+  transitionIndex += 1;
+  existingNode.style.viewTransitionName = "zjax-transition" + transitionIndex;
   document.startViewTransition(async () => {
     if (swapType === "outer") {
       existingNode.outerHTML = newNode.outerHTML;
