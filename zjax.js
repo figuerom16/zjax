@@ -188,7 +188,7 @@ function getZSwapFunction(zSwap, el) {
 }
 
 function swapOneElement(existingNode, newNode, swapType) {
-  newNode.style.viewTransitionName = "zjax-transition";
+  existingNode.style.viewTransitionName = "zjax-transition";
   document.startViewTransition(async () => {
     if (swapType === "outer") {
       existingNode.outerHTML = newNode.outerHTML;
