@@ -1,22 +1,23 @@
 # ZJAX
 
-ZJAX is a tiny Javascript library (2Kb gzipped) that makes it possible to add modern SPA-like interactivity to a website by sprinkling "z-tag" attributes onto plain HTML elements. Using attributes such as `z-swap` or `z-action` gives your HTML tags superpowers including the ability to swap out *parts of* a web page or attach client-side Javascript actions to DOM elements.
+ZJAX is a lightweight yet powerful JavaScript library (just 2KB gzipped) that brings modern SPA-like interactivity to your web pages with minimal effort. By simply adding intuitive "z-tag" attributes like `z-swap` and `z-action` to your HTML elements, ZJAX lets you to dynamically update parts of a web page or bind client-side JavaScript actions directly to the DOM—all without writing verbose JavaScript code.
 
-Use ZJAX with Rails, Laravel, Django, Astro, or any other SSR backend you like. It is heavily inspired by HTMX and Unpoly with some powerful new concepts.
+Inspired by HTMX and Unpoly and compatible with *any* SSR backend like Rails, Laravel, Django, Astro – or even Wordpress, ZJAX seamlessly integrates into your workflow. 
 
 ## Getting started
 
-Link ZJAX from a CDN:
+To get started, just add the ZJAX CDN link in your document head.
 
 ```html
-<script src="https://unpkg.com/zjax"></script>
+<head>
+  <script src="https://unpkg.com/zjax"></script>
+  ...
+</head>
 ```
 
-##### Now use z-tags anywhere
+##### Now use z-tags anywhere!
 
-Z-tags aren't really tags – they're attributes that can be added to tags. But z-tags rolls off the tongue so much nicer than "z-attributes" – so, z-tags it is.
-
-
+>  Z-tags aren't really tags – they're *attributes* that can be added to HTML tags. But "z-tags" rolls off the tongue so much nicer than "z-attributes" – so, *z-tags* it is.
 
 # `z-swap`
 
@@ -29,7 +30,7 @@ You can try this right now with a plain HTML file.
 ```html
 <html>
   <head>
-		<script src="https://unpkg.com/zjax"></script>
+    <script src="https://unpkg.com/zjax"></script>
   </head>
   
   <body>
@@ -42,7 +43,7 @@ You can try this right now with a plain HTML file.
 
 By adding the `z-swap` tag, this link will be hijacked by ZJAX, replacing it's default behavior with an AJAX request to httpbin.org. It then replaces the closest `p` element in our local DOM with the `p` element found in the response HTML *without* affecting any other parts of the page. 
 
-In this example, we specified only the element to be swapped. The trigger event type, HTTP method, and endpoint URL are inferred from context. By default, for an `a`-tag, `z-swap` will listen for a `clidk` event, then uses the GET method and the endpoint URL inferred from `href`. But these can also be defined explicitly for the example above, we could have done this explicitly for the same effect:
+In this example, we specified only the element to be swapped. The trigger event type, HTTP method, and endpoint URL are all inferred from context. So, by default, for an `a`-tag, `z-swap` will listen for a `click` event, the HTTP method will be `GET`, and the endpoint URL is inferred from `href` value. But these can also be defined explicitly. For the example above, we could have done this explicitly for the same effect:
 ```html
 <a href="" z-swap="@click GET https://httpbin.org/html p">
 ```
@@ -53,11 +54,11 @@ In the version above, we've omitted the `href` value for brevity and because it 
 >
 >  `z-swap="[@Event-Type>] [HTTP-Method] [Endpoint] [Swap-Element]"`
 >
-> All arguments are optional as long as they can be inferred from context, but must be specified in the order shown if present. Each specifier is separated by a space.
+> All specifiers are optional as long as they can be inferred from context. Each specifier is separated by a space. The order shown above is the recommended convention for readability. Remember that the Event-Type must always be prefixed with "@" and that a valid endpoint must always start with "http://", "https://", "/", "./", or can it can be a single dot, ".".
 
 ---
 
-##### Specifying the Event-Type
+#### Specifying the Event-Type
 
 Try prepending `@mouseover` to the `z-swap` value.
 
@@ -67,11 +68,11 @@ Try prepending `@mouseover` to the `z-swap` value.
 </a>
 ```
 
-Any standard DOM event as well as some special ones added by ZJAX and even custom events (more on this later) can be specified with an @-sign like `@submit`, `@blur`, `@input`, `@dblclick`, etc.
+Any standard DOM event as well as some special ones added by ZJAX and any custom events you have defined globally can be specified with an @-sign like `@submit`, `@blur`, `@input`, `@dblclick`, `@my-custom-event`, etc.
 
-##### Specifying the Endpoint
+#### Specifying the Endpoint
 
-The example above infers the endpoint from the `a`-tag's `href` value. But for a `button` tag, there's no `href` attribute – so we can specify that too as part of the `z-swap` value.
+The example above infers the endpoint from the `a`-tag's `href` value. But for a `button` tag, there is no `href` attribute – so you'll want to specify that too as part of the `z-swap` value.
 
 ```html
 <button z-swap="@mouseover https://httpbin.org/html p">
@@ -79,11 +80,11 @@ The example above infers the endpoint from the `a`-tag's `href` value. But for a
 </a>
 ```
 
-The Endpoint can be any valid URL including local absolute or relative paths.
+The Endpoint specifier can be any valid URL including local absolute or relative paths as long as it starts with the protocol ("http://" or "https://"), or starts with an absolute or relative path which includes a slash ("/", or "./"), or is a single dot to refer to the current URL (".").
 
-##### Specifying the HTTP-Method
+#### Specifying the HTTP-Method
 
-The example above defaults to using a GET method which is the default when using `z-swap` on any element except `form` (then the default is POST). The HTTP methods GET, POST, PUT, PATCH, or DELETE can be prepended to the specified URL, separated by a space as usual.
+The example above defaults to using a GET method which is the default when using `z-swap` on any element except `form` (then the default is POST). The HTTP methods GET, POST, PUT, PATCH, or DELETE are supported.
 
 ```html
 <button z-swap="DELETE /books/123 #book-form">
@@ -91,25 +92,13 @@ The example above defaults to using a GET method which is the default when using
 </a>
 ```
 
-Notice that in the example above, we didn't specify the trigger event because the default `click` is mostly likely what we want in this case. Here, the HTTP method and a local URL in this case are specified along with the element to be swapped.
+Notice that in the example above, we didn't specify the trigger event because the default `click` is just fine for our button in this case. Here, the HTTP method and a local URL are specified along with the element to be swapped.
 
-##### Specifying the SWAP Element
+#### Specifying the SWAP-Element
 
-The swap element is specified with CSS selector syntax like `p`, `#cart`, or `footer > span`.
+The swap element is specified with CSS selector syntax like `p`, `#cart`, or `footer > span`. If only one element is specified, it will be used to identify both the incoming element and the existing element to be replaced. Specifying multiple elements to swap at once as well as specifying separate incoming and existing element selectors are also supported. The default Swap-Type which replaces the entire element can also be changed.
 
-
-
-
-
-TODO
-
-
-
-
-
-
-
-##### Swapping multiple elements
+#### Swapping multiple elements
 
 We aren't limited to swapping just one element. Multiple elements can be swapped at the same time separated by commas. 
 
@@ -119,14 +108,14 @@ We aren't limited to swapping just one element. Multiple elements can be swapped
 </a>
 ```
 
-In the example above, both the `#book-form` and `#cart-total` elements will be swapped for the elements found in the response. 
+In the example above, both the `#book-form` and `#cart-total` elements will be swapped out and replaced with elements found in the response. 
 
-##### Swapping source->target elements
+#### Swapping incoming->existing elements
 
-Sometimes the target element isn't the same as the source. Use the `->` to specify a source element from the response that should be used to replace the target element in the current DOM.
+Sometimes the selector for the existing element isn't the same as the incoming. Use the `->` operator to specify existing and incoming elements separately.
 
 ```html
-<button z-swap="/books/123 #book-form, #updated-cart->#cart-total">
+<button z-swap="/books/123 #book-form, #updated-cart->#cart">
   Click me
 </a>
 ```
@@ -139,11 +128,11 @@ Use a `*` character to specify the entire page content.
 </a>
 ```
 
-In the above example, perhaps the `/books/123` route returns a partial
+In the above example, presumably the `/books/123` route returns a partial containing only the elements we need.
 
-##### Specifying the swap type
+#### Specifying the Swap-Type
 
-The default swap type is to replace the element in its entirety. Alternatively, you may want to replace only the inner content of the element, or maybe insert the new element *after* the existing one. The swap type can be appended to any target element using the pipe `|` character.
+The default Swap-Type is `outer` which replaces the element in its entirety. Alternatively, you may want to replace only the inner content of the element, or maybe insert the new element *after* the existing one. The Swap-Type can be appended to the existing element using the pipe `|` character. Note that the Swap-Type only affects the existing element.
 
 ```html
 <button z-swap="/books/123 #cart-total|after">
@@ -161,3 +150,152 @@ Swap type available include:
 `append` - Insert after all other inner content
 `delete` - Ignore returned value and delete this element
 `none` - Do nothing (typically used with dynamic values)
+
+
+
+
+
+# `z-action` 
+
+***This is not yet implemented*** 
+
+The `z-action` attribute is used to bind a Javascript method to an element's event listener with syntax similar to `z-swap`. So use `z-swap` to interact with a remote server and use `z-action` to handle client-side only Javascript actions where no round trip to the server is needed (like closing a modal window).
+
+In this example, a `dblclick` event listener is added to the event which will call the `doSomething()` action. 
+
+```html
+<div z-action="@dblclick doSomething">
+  Do it now!
+</div> 
+```
+
+In order for this action to work, we need to define it somewhere in our project as ZJAX Action like this:
+
+```html
+<script>
+	zjax.actions({
+    doSomething() {
+      alert("I did something!");
+    }
+  })
+</script>
+```
+
+#### The `zjax` global object
+
+When ZJAX is loaded, it creates the `window.zjax` object so that the `zjax` object available everywhere in your app. This means you can organize your files however you like. You can stick in a script tag in your document head, add a separate file like "zjax-actions.js" (or whatever), or if your application is complex enough, maybe a directory called "zjax-actions/" with separate files for different sections of your application.
+
+#### Defining Actions
+
+To register actions, call `zjax.actions(<actions-object)` with one or two arguments. Use a single argument to pass an object containing only action functions as its direct properties like this:
+
+```js
+zjax.actions({
+  openModal() {
+    ...
+  },
+  closeModal() {
+    ...
+  },
+  async handleFileUploadDrop() {
+    ...
+  }
+})
+```
+
+#### Registering Actions with a namespace
+
+Actions can also be registered in their own namespace by providing a string as the first argument like this:
+```js
+zjax.actions('products', {
+  addToCart() {
+    ...
+  },
+  removeFromCart() {
+    ...
+  }
+})
+```
+
+For this example, the `z-action` would be used like this:
+
+```html
+<button z-action="products.addToCart">
+  Add To Cart
+</button>
+```
+
+
+
+#### How Actions work
+
+Naturally, an Action function may contain any valid Javascript. Vanilla JS is very powerful these days allowing for full access to DOM manipulation without the need for any JQuery-like library. But ZJAX gives us a couple of handy tools anyway just to make life a bit easier.
+
+#### Adding event listeners with `z-action`
+
+Manually adding event listeners from a JS script somewhere else in your project can be tedious and difficult to manage. Event listeners will also need to be removed at some point or they can start stacking up and eventually cause memory leak issues. 
+
+Instead, we can use a `z-action` tag to not only set up the listener and associate it with a function, but also to remove it automatically when the element is removed from the DOM.
+
+> #### *GOTCHA!*
+>
+> Watch out for this quirk of HTTP. When a `<script>` tag is added to the DOM for example by a `z-action`, it will be *ignored* by the browser. This means that you can't declare ZJAX Actions within a partial for example. Of course you can use `z-action` attributes in your partials and these will be parsed just fine. But the actual `zjax.action()` function used to *define* the action cannot be within a `<script>` tag contained in a swap response.
+
+##### The `$` Action Helper object
+
+Action functions receive a `$` argument.
+
+```js
+doSomething($) {
+  ... // Now can acccess the $ object
+}
+```
+
+This object is called the Action Helper and it provides a few handy properties and methods. 
+
+- `$(<selector)` is a shortcut for `Document.querySelector(<selector>)`.
+- `$()` returns the element which triggered this action when no selector is provided.
+- `$.swap` performs the same action as a `z-swap` tag and receives the same specifiers except the trigger specifier which is ommited.
+- `$.render(<dom>, <selector>[|<swap-type>])` renders DOM elements to the target selector using an optional Swap-Type.
+- `await $.get(<url>)` is a shortcut for asynchronously fetching a document with the GET method and returning the response as a parsed DOM object.
+- `await $.delete(<url>)` is the same as `$.get` but uses the DELETE method.
+- `await $.post(<url>, <payload>)` is a shortcut for asynchronously sending the included `<payload>` with the POST method and returning the response as a parsed DOM object.
+- `await $.put(<url, <payload>)`, `$.patch(<url, <payload>)` are the same as `$.post` but using the PUT or PATCH method respectively.
+
+#### Using a ZJAX Action as a `z-swap` trigger
+
+Sometimes it makes sense to trigger a `z-swap` action only once a `z-action` has completed successfully. For example, a `z-action` could be used to create a custom confirmation modal. And the `z-swap` should only happen when/if the user clicks the modal's "yes" button. 
+
+ZJAX make this very simple. 
+
+1. Specify `@action` as the trigger event for this `z-swap`.
+2. Return `true` from the ZJAX Action function to trigger the `z-swap`.
+
+Note that this works for synchronous and asynchronous functions alike.
+
+
+
+# `z-confirm`
+
+***This is not yet implemented*** 
+
+
+
+
+
+# `z-active`
+
+***This is not yet implemented*** 
+
+
+
+
+
+# `z-validate`
+
+***This is not yet implemented*** 
+
+
+
+
+

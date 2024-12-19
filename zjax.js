@@ -47,37 +47,61 @@ function parseZSwaps(documentOrNode) {
     );
   zSwapNodes.forEach(function (el) {
     try {
+      // Collapse commas
       const valueString = collapseCommas(el.getAttribute("z-swap"));
+      // Split on whitespace
       const valueParts = valueString.split(/\s/);
       if (valueParts.length < 1 || valueParts.length > 4) {
         throw new Error("Must have between 1 and 4 parts separated by spaces.");
       }
-      // First pop off the last array item which should be the swap specifier
-      const swapString = valueParts.pop() || null;
-      // Next pop off the first array item only if it's a valid trigger specifier
-      const triggerString =
-        valueParts[0] && valueParts[0].startsWith("@")
-          ? valueParts.shift()
-          : null;
-      // With max two items left, the last one should be the endpoint
-      const endpointString = valueParts.pop() || null;
-      // And if anything is left, it should be the method
-      const methodString = valueParts.pop() || null;
-      // Now we can get the trigger, method, endpoint, and swaps
-      const zSwap = {
-        trigger: getTrigger(triggerString, el),
-        method: getMethod(methodString, el),
-        endpoint: getEndpoint(endpointString, el),
-        swaps: getSwaps(swapString),
-      };
-      // Add the swap function listener to the node
-      const zSwapFunction = getZSwapFunction(zSwap, el);
-      attachEventListener(zSwap.trigger, zSwapFunction, el);
-      attachMutationObserver(zSwap.trigger, zSwapFunction, el);
-      zjax.debug &&
-        debug(
-          `Added z-swap for '${zSwap.trigger}' events to ${prettyNodeName(el)}`
-        );
+
+      const zSwap = {};
+
+      // valueParts.forEach((part) => {
+      //   const [type, value] = getSwapSpecifierTypeAndValue(part);
+      //   zSwap[type] = value;
+      // });
+      // console.log("zSwap", zSwap);
+
+      while (valueParts.length > 0) {
+        const part = valueParts.shift();
+        console.log("part", part);
+        const [type, value] = getSwapSpecifierTypeAndValue(part);
+        zSwap[type] = value;
+      }
+      console.log("zSwap", zSwap);
+
+      // TODO: FINISH NEW PARSING
+
+      // console.log("valueParts", valueParts);
+      // console.log("zSwap", zSwap);
+
+      // // First pop off the last array item which should be the swap specifier
+      // const swapString = valueParts.pop() || null;
+      // // Next pop off the first array item only if it's a valid trigger specifier
+      // const triggerString =
+      //   valueParts[0] && valueParts[0].startsWith("@")
+      //     ? valueParts.shift()
+      //     : null;
+      // // With max two items left, the last one should be the endpoint
+      // const endpointString = valueParts.pop() || null;
+      // // And if anything is left, it should be the method
+      // const methodString = valueParts.pop() || null;
+      // // Now we can get the trigger, method, endpoint, and swaps
+      // const zSwap = {
+      //   trigger: getTrigger(triggerString, el),
+      //   method: getMethod(methodString, el),
+      //   endpoint: getEndpoint(endpointString, el),
+      //   swaps: getSwaps(swapString),
+      // };
+      // // Add the swap function listener to the node
+      // const zSwapFunction = getZSwapFunction(zSwap, el);
+      // attachEventListener(zSwap.trigger, zSwapFunction, el);
+      // attachMutationObserver(zSwap.trigger, zSwapFunction, el);
+      // zjax.debug &&
+      //   debug(
+      //     `Added z-swap for '${zSwap.trigger}' events to ${prettyNodeName(el)}`
+      //   );
     } catch (error) {
       console.error(
         `ZJAX ERROR – Unable to parse z-swap: ${error.message}\n`,
@@ -87,6 +111,24 @@ function parseZSwaps(documentOrNode) {
   });
 }
 
+function getSwapSpecifierTypeAndValue(swapSpecifier) {
+  // Is this a trigger?
+  if (swapSpecifier.startsWith("@")) {
+    return ["trigger", swapSpecifier.substr(1)];
+  }
+  // Is this a method?
+  if (
+    ["GET", "POST", "PUT", "PATCH", "DELETE"].includes(
+      swapSpecifier.toUpperCase()
+    )
+  ) {
+    return ["method", swapSpecifier.toUpperCase()];
+  }
+  // Is this an endpoint?
+  if (swapSpecifier.startsWith("http")) {
+    return ["endpoint", swapSpecifier];
+  }
+}
 // Helper functions
 
 function prettyNodeName(nodeOrDocument) {
