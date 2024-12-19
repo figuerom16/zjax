@@ -6,7 +6,7 @@ Inspired by HTMX and Unpoly and compatible with *any* SSR backend like Rails, La
 
 ## Getting started
 
-To get started, just add the ZJAX CDN link in your document head.
+To install ZJAX, simply include the ZJAX CDN link in your document head.
 
 ```html
 <head>
@@ -43,16 +43,16 @@ You can try this right now with a plain HTML file.
 
 By adding the `z-swap` tag, this link will be hijacked by ZJAX, replacing it's default behavior with an AJAX request to httpbin.org. It then replaces the closest `p` element in our local DOM with the `p` element found in the response HTML *without* affecting any other parts of the page. 
 
-In this example, we specified only the element to be swapped. The trigger event type, HTTP method, and endpoint URL are all inferred from context. So, by default, for an `a`-tag, `z-swap` will listen for a `click` event, the HTTP method will be `GET`, and the endpoint URL is inferred from `href` value. But these can also be defined explicitly. For the example above, we could have done this explicitly for the same effect:
+In this example, we specified only the element to be swapped and other specifiers are inferred from context. By default, for an `a` tag, `z-swap` will listen for a `click` event as its Trigger, the HTTP Method will be `GET`, and the Endpoint URL is inferred from `href` value. But these can also be defined explicitly. For the example above, this is the same:
 ```html
 <a href="" z-swap="@click GET https://httpbin.org/html p">
 ```
 
-In the version above, we've omitted the `href` value for brevity and because it will be ignored anyway since the explicitly specified endpoint URL takes precedence.
+We've omitted the `href` value for brevity and because it will be ignored anyway since the explicitly specified endpoint URL takes precedence.
 
 > ## Format of `z-swap` value
 >
->  `z-swap="[@Event-Type>] [HTTP-Method] [Endpoint] [Swap-Element]"`
+>  `z-swap="[@Trigger>] [HTTP-Method] [Endpoint] [Swap-Element]"`
 >
 > All specifiers are optional as long as they can be inferred from context. Each specifier is separated by a space. The order shown above is the recommended convention for readability. Remember that the Event-Type must always be prefixed with "@" and that a valid endpoint must always start with "http://", "https://", "/", "./", or can it can be a single dot, ".".
 
