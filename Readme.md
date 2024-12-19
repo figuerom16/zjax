@@ -22,49 +22,38 @@ Z-tags aren't really tags – they're attributes that can be added to tags. But 
 
 The main workhorse of ZJAX is the `z-swap` attribute which can be added to any HTML tag to specify the elements we want to swap.
 
-You can try this right now. Create two routes using your favorite SSR framework, or even just as plain HTML using a local web server (like the Live Server extension for VS Code).
+You can try this right now with a plain HTML file.
 
 **index.html**
 
 ```html
 <html>
   <head>
-		<script src="./src/zjax.js"></script>  
+		<script src="https://unpkg.com/zjax"></script>
   </head>
   
   <body>
     <h1>This is ZJAX</h1>
-    <section id="swapme">
-      <h3>What can ZJAX do for HTML?</h3>
-      <a href="/other.html" z-swap="#swapme">Click me</a>
-    </section>
+    <a href="https://httpbin.org/html" z-swap="p">Fetch Moby Dick</a>
+    <p>This will be replaced by ZJAX.</p>    
   </body>
 </html>
 ```
 
+By adding the `z-swap` tag, this link will be hijacked by ZJAX, replacing it's default behavior with an AJAX request to httpbin.org. It then replaces the closest `p` element in our local DOM with the `p` element found in the response HTML *without* affecting any other parts of the page. 
 
-
-**other.html**
-
+In this example, we specified only the element to be swapped. The trigger event type, HTTP method, and endpoint URL are inferred from context. By default, for an `a`-tag, `z-swap` will listen for a `clidk` event, then uses the GET method and the endpoint URL inferred from `href`. But these can also be defined explicitly for the example above, we could have done this explicitly for the same effect:
 ```html
-<html>
-  <body>
-    <h1 id="header">ZJAX gives HTML superpowers!</h1>
-  </body>
-</html>
+<a href="" z-swap="@click GET https://httpbin.org/html p">
 ```
 
-
-
-By adding the `z-swap` tag, this link will be hijacked by ZJAX, replacing it's default behavior with an AJAX request which makes a GET request to npmjs.com. It then appends the `h1` element found in the response to the `#viewer` element in our local DOM without affecting any other parts of the page. 
-
-In this example, we provided only the element to be swapped without specifying the endpoint URL, the HTTP method, or the trigger event type. So these are inferred. By default, for an `a`-tag, `z-swap` uses the GET method and the endpoint inferred from `href` and will listen for the `click` event as its trigger.
+In the version above, we've omitted the `href` value for brevity and because it will be ignored anyway since the explicitly specified endpoint URL takes precedence.
 
 > ## Format of `z-swap` value
 >
->  `z-swap="[@Event-Type>] [HTTP-Method] [Endpoint] Swap-Elements"`
+>  `z-swap="[@Event-Type>] [HTTP-Method] [Endpoint] [Swap-Element]"`
 >
-> The Event-Type, HTTP-Method, and Endpoint are all optional but must be specified in the order shown if present. Each specifier is separated by a space. Swap-Elements are required and must always be specified as the last (or only) value.
+> All arguments are optional as long as they can be inferred from context, but must be specified in the order shown if present. Each specifier is separated by a space.
 
 ---
 
@@ -85,7 +74,7 @@ Any standard DOM event as well as some special ones added by ZJAX and even custo
 The example above infers the endpoint from the `a`-tag's `href` value. But for a `button` tag, there's no `href` attribute – so we can specify that too as part of the `z-swap` value.
 
 ```html
-<button z-swap="@mouseover https://npmjs.com main">
+<button z-swap="@mouseover https://httpbin.org/html p">
   Click me
 </a>
 ```
@@ -94,7 +83,7 @@ The Endpoint can be any valid URL including local absolute or relative paths.
 
 ##### Specifying the HTTP-Method
 
-The example above defaults to using a GET method which is the default when using `z-swap` on any element except `form` (then the default is POST). The HTTP methods GET, POST, PUT, PATCH, or DELETE can be prepended to the specified URL.
+The example above defaults to using a GET method which is the default when using `z-swap` on any element except `form` (then the default is POST). The HTTP methods GET, POST, PUT, PATCH, or DELETE can be prepended to the specified URL, separated by a space as usual.
 
 ```html
 <button z-swap="DELETE /books/123 #book-form">
@@ -102,7 +91,23 @@ The example above defaults to using a GET method which is the default when using
 </a>
 ```
 
-Notice that in the example above, we didn't specify the trigger event because the default `click` is just what we wanted anyway. Here, the HTTP method and a local URL in this case are specified along with the element to be swapped. 
+Notice that in the example above, we didn't specify the trigger event because the default `click` is mostly likely what we want in this case. Here, the HTTP method and a local URL in this case are specified along with the element to be swapped.
+
+##### Specifying the SWAP Element
+
+The swap element is specified with CSS selector syntax like `p`, `#cart`, or `footer > span`.
+
+
+
+
+
+TODO
+
+
+
+
+
+
 
 ##### Swapping multiple elements
 

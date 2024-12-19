@@ -101,8 +101,8 @@ function prettyNodeName(nodeOrDocument) {
 function getMatchingNodes(documentOrNode, selector) {
   // Find all decendent nodes with a z-swap attribute
   const nodesToParse = [];
-  nodesToParse.push(...documentOrNode.querySelectorAll("[z-swap]"));
-  if (documentOrNode != document && documentOrNode.matches("[z-swap]")) {
+  nodesToParse.push(...documentOrNode.querySelectorAll(selector));
+  if (documentOrNode != document && documentOrNode.matches(selector)) {
     // And include the node itself if it has a z-swap attribute
     nodesToParse.push(documentOrNode);
   }
@@ -179,7 +179,7 @@ function getZSwapFunction(zSwap, el) {
     // Call the action
     try {
       // Get formData?
-      // let formData
+      // const body = ?? # TODO
       const response = await fetch(zSwap.endpoint, {
         method: zSwap.method,
         body: null,
@@ -228,8 +228,6 @@ function getZSwapFunction(zSwap, el) {
 
 let transitionIndex = 0;
 function swapOneNode(existingNode, newNode, swapType) {
-  transitionIndex += 1;
-  existingNode.style.viewTransitionName = "zjax-transition" + transitionIndex;
   document.startViewTransition(async () => {
     if (swapType === "outer") {
       existingNode.outerHTML = newNode.outerHTML;
