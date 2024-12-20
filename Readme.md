@@ -1,6 +1,6 @@
 # ZJAX
 
-ZJAX is a lightweight yet powerful JavaScript library (just 2KB gzipped) that brings modern SPA-like interactivity to your web pages with minimal effort. By simply adding intuitive "z-tag" attributes like `z-swap` and `z-action` to your HTML elements, ZJAX lets you to dynamically update parts of a web page or bind client-side JavaScript actions directly to the DOM—all without writing verbose JavaScript code.
+ZJAX is a lightweight yet powerful JavaScript library (just 2KB gzipped) that brings modern SPA-like interactivity to your web pages with minimal effort. By simply adding intuitive "z-tag" attributes like `z-swap` and `z-action` to your HTML elements, ZJAX lets you dynamically update parts of a web page or bind client-side JavaScript actions directly to the DOM—all without writing verbose JavaScript code.
 
 Inspired by HTMX and Unpoly and compatible with *any* SSR backend like Rails, Laravel, Django, Astro – or even Wordpress, ZJAX seamlessly integrates into your workflow. 
 
@@ -54,11 +54,11 @@ We've omitted the `href` value for brevity and because it will be ignored anyway
 >
 >  `z-swap="[@Trigger>] [HTTP-Method] [Endpoint] [Swap-Element]"`
 >
-> All specifiers are optional as long as they can be inferred from context. Each specifier is separated by a space. The order shown above is the recommended convention for readability. Remember that the Event-Type must always be prefixed with "@" and that a valid endpoint must always start with "http://", "https://", "/", "./", or can it can be a single dot, ".".
+> All specifiers are optional as long as they can be inferred from context. Each specifier is separated by a space. The order shown above is the recommended convention for readability. Remember that the Trigger must always be prefixed with "@" and that a valid endpoint must always start with "http://", "https://", "/", "./", or can it can be a single dot, ".".
 
 ---
 
-#### Specifying the Event-Type
+#### Specifying the Trigger
 
 Try prepending `@mouseover` to the `z-swap` value.
 
@@ -92,7 +92,7 @@ The example above defaults to using a GET method which is the default when using
 </a>
 ```
 
-Notice that in the example above, we didn't specify the trigger event because the default `click` is just fine for our button in this case. Here, the HTTP method and a local URL are specified along with the element to be swapped.
+Notice that in the example above, we didn't specify the Trigger event because the default `click` is just fine for our button in this case. Here, the HTTP method and a local URL are specified along with the element to be swapped.
 
 #### Specifying the SWAP-Element
 
@@ -268,7 +268,7 @@ Sometimes it makes sense to trigger a `z-swap` action only once a `z-action` has
 
 ZJAX make this very simple. 
 
-1. Specify `@action` as the trigger event for this `z-swap`.
+1. Specify `@action` as the Trigger event for this `z-swap`.
 2. Return `true` from the ZJAX Action function to trigger the `z-swap`.
 
 Note that this works for synchronous and asynchronous functions alike.

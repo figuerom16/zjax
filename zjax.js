@@ -1,5 +1,6 @@
 // Create a global zjax object for setting debug mode and registering JS actions.
 window.zjax = getGlobalZjaxObject();
+const METHODS = ["GET", "POST", "PUT", "PATCH", "DELETE"];
 
 // Parse the DOM on load.
 addEventListener("DOMContentLoaded", function () {
@@ -55,53 +56,46 @@ function parseZSwaps(documentOrNode) {
         throw new Error("Must have between 1 and 4 parts separated by spaces.");
       }
 
+      // Loop through space-separated parts of the z-swap attribute to build the zSwap object
       const zSwap = {};
-
-      // valueParts.forEach((part) => {
-      //   const [type, value] = getSwapSpecifierTypeAndValue(part);
-      //   zSwap[type] = value;
-      // });
-      // console.log("zSwap", zSwap);
+      const leftoverParts = [];
 
       while (valueParts.length > 0) {
         const part = valueParts.shift();
-        console.log("part", part);
-        const [type, value] = getSwapSpecifierTypeAndValue(part);
-        zSwap[type] = value;
+        const typeAndValue = getTriggerMethodOrEndpointPair(part);
+        if (typeAndValue) {
+          zSwap[typeAndValue[0]] = typeAndValue[1];
+        } else {
+          leftoverParts.push(part);
+        }
       }
-      console.log("zSwap", zSwap);
 
-      // TODO: FINISH NEW PARSING
+      // Now set defaults for missing values.
+      if (!zSwap.trigger) {
+        zSwap.trigger = el.tagName === "FORM" ? "submit" : "click";
+      }
+      if (!zSwap.method) {
+        zSwap.method = el.tageName === "FORM" ? "POST" : "GET";
+      }
+      if (!zSwap.endpoint) {
+        if (el.tagName === "FORM") {
+          zSwap.endpoint = el.action;
+        } else if (el.tagName === "A") {
+          zSwap.endpoint = el.href;
+        }
+      }
 
-      // console.log("valueParts", valueParts);
-      // console.log("zSwap", zSwap);
+      // Finally, add the array of swaps
+      zSwap.swaps = getSwaps(leftoverParts.join(" "));
 
-      // // First pop off the last array item which should be the swap specifier
-      // const swapString = valueParts.pop() || null;
-      // // Next pop off the first array item only if it's a valid trigger specifier
-      // const triggerString =
-      //   valueParts[0] && valueParts[0].startsWith("@")
-      //     ? valueParts.shift()
-      //     : null;
-      // // With max two items left, the last one should be the endpoint
-      // const endpointString = valueParts.pop() || null;
-      // // And if anything is left, it should be the method
-      // const methodString = valueParts.pop() || null;
-      // // Now we can get the trigger, method, endpoint, and swaps
-      // const zSwap = {
-      //   trigger: getTrigger(triggerString, el),
-      //   method: getMethod(methodString, el),
-      //   endpoint: getEndpoint(endpointString, el),
-      //   swaps: getSwaps(swapString),
-      // };
-      // // Add the swap function listener to the node
-      // const zSwapFunction = getZSwapFunction(zSwap, el);
-      // attachEventListener(zSwap.trigger, zSwapFunction, el);
-      // attachMutationObserver(zSwap.trigger, zSwapFunction, el);
-      // zjax.debug &&
-      //   debug(
-      //     `Added z-swap for '${zSwap.trigger}' events to ${prettyNodeName(el)}`
-      //   );
+      // Add the swap function listener to the node
+      const zSwapFunction = getZSwapFunction(zSwap, el);
+      attachEventListener(zSwap.trigger, zSwapFunction, el);
+      attachMutationObserver(zSwap.trigger, zSwapFunction, el);
+      zjax.debug &&
+        debug(
+          `Added z-swap for '${zSwap.trigger}' events to ${prettyNodeName(el)}`
+        );
     } catch (error) {
       console.error(
         `ZJAX ERROR – Unable to parse z-swap: ${error.message}\n`,
@@ -111,21 +105,18 @@ function parseZSwaps(documentOrNode) {
   });
 }
 
-function getSwapSpecifierTypeAndValue(swapSpecifier) {
-  // Is this a trigger?
+function getTriggerMethodOrEndpointPair(swapSpecifier) {
+  // Is this a Trigger?
   if (swapSpecifier.startsWith("@")) {
     return ["trigger", swapSpecifier.substr(1)];
   }
-  // Is this a method?
-  if (
-    ["GET", "POST", "PUT", "PATCH", "DELETE"].includes(
-      swapSpecifier.toUpperCase()
-    )
-  ) {
+  // Is this an HTTP Method?
+  if (METHODS.includes(swapSpecifier.toUpperCase())) {
     return ["method", swapSpecifier.toUpperCase()];
   }
-  // Is this an endpoint?
-  if (swapSpecifier.startsWith("http")) {
+  // Is this an Endpoint?
+  regexEndpoint = /^(\/.*|\.\/.*|https?:\/\/.*|\.)$/;
+  if (regexEndpoint.test(swapSpecifier)) {
     return ["endpoint", swapSpecifier];
   }
 }
@@ -149,47 +140,6 @@ function getMatchingNodes(documentOrNode, selector) {
     nodesToParse.push(documentOrNode);
   }
   return nodesToParse;
-}
-
-function getTrigger(triggerString, el) {
-  if (triggerString) {
-    return triggerString.substr(1);
-  }
-  if (el.tagName === "FORM") {
-    return "submit";
-  }
-  return "click";
-}
-
-function getMethod(methodString, el) {
-  if (methodString) {
-    const method = methodString.toUpperCase();
-    if (!["GET", "POST", "PUT", "PATCH", "DELETE"].includes(method)) {
-      throw new Error(`Invalid method: ${method}`);
-    }
-    return method;
-  }
-  if (el.tagName === "FORM") {
-    return el.getAttribute("method") || "POST";
-  }
-  return "GET";
-}
-
-function getEndpoint(endpointString, el) {
-  // If we're seeing a method here, that means the endpoint is missing.
-  if (["GET", "POST", "PUT", "PATCH", "DELETE"].includes(endpointString)) {
-    throw new Error("Missing required endpoint value.");
-  }
-  if (endpointString) {
-    return endpointString;
-  }
-  if (el.tagName === "A") {
-    return el.getAttribute("href");
-  }
-  if (el.tagName === "FORM") {
-    return el.getAttribute("action");
-  }
-  throw new Error("Missing required endpoint value.");
 }
 
 function getSwaps(swapString) {
@@ -268,7 +218,6 @@ function getZSwapFunction(zSwap, el) {
   };
 }
 
-let transitionIndex = 0;
 function swapOneNode(existingNode, newNode, swapType) {
   document.startViewTransition(async () => {
     if (swapType === "outer") {

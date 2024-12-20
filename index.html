@@ -2,6 +2,7 @@
   <head>
     <link rel="stylesheet" href="https://unpkg.com/tiny.css@0">
 		<!-- <script src="https://unpkg.com/zjax"></script> -->
+		<!-- <script src="dist/zjax.min.js"></script> -->
 		<script src="zjax.js"></script>
     <script>
       zjax.debug = true;
@@ -11,9 +12,9 @@
   <body>
     <h1>This is ZJAX</h1>
     <p>This will be replaced by ZJAX.</p>
-    <a id="moby" href="https://httpbin.org/html" z-swap="@mouseover GET https://www.gutenberg.org/files/2701/2701-0.txt #appendable|app">Fetch Moby Dick</a>
+    <a id="moby" href="https://httpbin.org/html" z-swap="p">Fetch Moby Dick</a>
     <div id="appendable">
-      <button z-swap="PATCH . button->#appendable|append">Append the h1</button>
+      <button z-swap="@click . button->#appendable|append">Append the h1</button>
     </div>
   </body>
 </html>
