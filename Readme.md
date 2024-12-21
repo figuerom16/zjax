@@ -2,7 +2,7 @@
 
 ZJAX is a lightweight yet powerful JavaScript library (just 2KB gzipped) that brings modern SPA-like interactivity to your web pages with minimal effort. By simply adding intuitive "z-tag" attributes like `z-swap` and `z-action` to your HTML elements, ZJAX lets you dynamically update parts of a web page or bind client-side JavaScript actions directly to the DOM—all without writing verbose JavaScript code.
 
-Inspired by HTMX and Unpoly and compatible with *any* SSR backend like Rails, Laravel, Django, Astro – or even Wordpress, ZJAX seamlessly integrates into your workflow. 
+Inspired by HTMX, Hotwire, and Unpoly and compatible with *any* SSR backend like Rails, Laravel, Django, Astro – or even Wordpress, ZJAX seamlessly integrates into your workflow. 
 
 ## Getting started
 
@@ -15,9 +15,9 @@ To install ZJAX, simply include the ZJAX CDN link in your document head.
 </head>
 ```
 
-##### Now use z-tags anywhere!
+You can now use ZJAX attributes anywhere in your project.
 
->  Z-tags aren't really tags – they're *attributes* that can be added to HTML tags. But "z-tags" rolls off the tongue so much nicer than "z-attributes" – so, *z-tags* it is.
+
 
 # `z-swap`
 

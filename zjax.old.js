@@ -137,12 +137,12 @@ function getTriggerMethodOrEndpointPair(swapSpecifier) {
   }
 }
 
-function prettyNodeName(documentOrNode) {
-  return documentOrNode instanceof Document
+function prettyNodeName(nodeOrDocument) {
+  return nodeOrDocument === document
     ? "#document"
     : "<" +
-        documentOrNode.tagName.toLowerCase() +
-        (documentOrNode.id ? "#" + documentOrNode.id : "") +
+        nodeOrDocument.tagName.toLowerCase() +
+        (nodeOrDocument.id ? "#" + nodeOrDocument.id : "") +
         ">";
 }
 
@@ -150,8 +150,7 @@ function getMatchingNodes(documentOrNode, selector) {
   // Find all decendent nodes with a z-swap attribute
   const nodesToParse = [];
   nodesToParse.push(...documentOrNode.querySelectorAll(selector));
-  const isDocument = documentOrNode instanceof Document;
-  if (!isDocument && documentOrNode.matches(selector)) {
+  if (documentOrNode != document && documentOrNode.matches(selector)) {
     // And include the node itself if it has a z-swap attribute
     nodesToParse.push(documentOrNode);
   }
@@ -161,8 +160,8 @@ function getMatchingNodes(documentOrNode, selector) {
 function getSwaps(swapString) {
   // Parse a  like: "foo->#bar|inner, #baz" into an array of objects
   // [
-  //   { new: "foo", old: "#bar", swapStringType: "inner" },
-  //   { new: "#baz", old: "#baz", swapType: null }
+  //   { source: "foo", target: "#bar", swapStringType: "inner" },
+  //   { source: "#baz", target: "#baz", swapType: null }
   // ]
   const swaps = [];
   swapString.split(",").forEach(function (swapPart) {
@@ -190,7 +189,12 @@ function getZSwapFunction(zSwap, node) {
     // Swap nodes
     zSwap.swaps.forEach(function (swap) {
       // Get the source and target nodes
-      const [newNode, oldNode] = getNewAndOldNodes(responseDOM, swap);
+      const [newNode, oldNode] = getSourceAndTargetNodes(
+        responseDOM,
+        swap,
+        node
+      );
+
       // Before swapping in a source node, parse it for z-swaps
       debug(`Parsing incoming response for z-swaps`);
       parseZSwaps(newNode);
@@ -235,124 +239,94 @@ async function getResponseDOM(method, endpoint) {
   return responseDOM;
 }
 
-function getNewAndOldNodes(responseDOM, swap) {
-  const newNode =
-    swap.new === "*" ? responseDOM : responseDOM.querySelector(swap.new);
-
-  const oldNode = document.querySelector(swap.old);
-
-  // Make sure there's a valid old node for all swap types except "none"
+function getSourceAndTargetNodes(responseDOM, swap, triggerNode) {
+  let oldNode;
+  let newNode;
+  // Does the trigger node have an id which matches a node in the response DOM?
+  if (triggerNode.id && responseDOM.getElementById(triggerNode.id)) {
+    oldNode = getNearestNode(triggerNode, swap.old);
+    newNode = getNearestNode(
+      responseDOM.getElementById(triggerNode.id),
+      swap.new
+    );
+    // Does the trigger node have an name attribute which matches a node in the response DOM?
+  } else if (
+    triggerNode.name &&
+    responseDOM.getElementByName(triggerNode.name)
+  ) {
+    oldNode = getNearestNode(triggerNode, swap.old);
+    newNode = getNearestNode(
+      responseDOM.getElementById(triggerNode.name),
+      swap.new
+    );
+    // Otherwise just find the first matchine node in the response DOM
+  } else {
+    oldNode = responseDOM.querySelector(swap.old);
+    newNode = responseDOM.querySelector(swap.new);
+  }
   if (!oldNode && swap.swapType !== "none") {
     throw new Error(`Target node '${swap.old}' does not exist in local DOM`);
   }
-
-  // Make sure there's a valid new node for all swap types except "none" or "delete"
   if (!newNode && swap.swapType !== "none" && swap.swapType !== "delete") {
     throw new Error(`Source node ${swap.new} does not exist in response DOM`);
   }
-
   return [newNode, oldNode];
 }
 
 function getNearestNode(node, selector) {
-  // THIS IDEA WAS SCRAPPED BECAUSE ITS TOO COMPLICATED FOR THE DEV TO USE
-  // IT'S REALLY ONLY NEEDED FOR VALIDATE (FIELDSETS)
-  //   console.log("node", node);
-  //   // Is this node itself a match?
-  //   if (node.matches(selector)) {
-  //     return node;
-  //   }
-  //   // Does this node contain a node matching the selector?
-  //   const containedNode = node.querySelector(selector);
-  //   if (containedNode) {
-  //     return containedNode;
-  //   }
-  //   // Return the closest ancestor node that matches the selector
-  //   const closestNode = node.closest(selector);
-  //   if (closestNode) {
-  //     return closestNode;
-  //   }
-  //   return null;
+  // Is this node itself a match?
+  if (node.matches(selector)) {
+    return node;
+  }
+  // Does this node contain a node matching the selector?
+  const containedNode = node.querySelector(selector);
+  if (containedNode) {
+    return containedNode;
+  }
+  // Return the closest ancestor node that matches the selector
+  const closestNode = node.closest(selector);
+  if (closestNode) {
+    return closestNode;
+  }
+  return null;
 }
 
 function swapOneNode(oldNode, newNode, swapType) {
-  // Since a newNode might be a single node or a while document (which may just contain
-  // a handful of nodes), let's just normalize all newNodes to be a node list.
-  const newNodeList = normalizeNodeList(newNode);
+  oldNode.outerHTML = "HERP";
+  console.log("oldNode", oldNode.outerHTML);
+  console.log("newNode", newNode.outerHTML);
   if (swapType === "outer") {
-    const oldNodeParent = oldNode.parentNode;
-    newNodeList.forEach((item) => {
-      console.log("item", item);
-      console.log("item.tagName", item.tagName);
-      oldNodeParent.insertBefore(item, oldNode);
-    });
-    oldNodeParent.removeChild(oldNode);
+    oldNode.outerHTML = newNode.outerHTML;
     return;
   }
   if (swapType === "inner") {
-    oldNode.innerHTML = isDocResponse
-      ? documentToString(newNode)
-      : newNode.outerHTML;
+    oldNode.innerHTML = newNode.outerHTML;
     return;
   }
   if (swapType === "before") {
-    let content;
-    if (isDocResponse) {
-      oldNode.parentNode.insertBefore(newNode, oldNode);
-      return;
-    }
-    if (swapType === "after") {
-      oldNode.parentNode.insertBefore(newNode, oldNode.nextSibling);
-      return;
-    }
-    if (swapType === "prepend") {
-      oldNode.insertBefore(newNode, oldNode.firstChild);
-      return;
-    }
-    if (swapType === "append") {
-      oldNode.appendChild(newNode);
-      return;
-    }
-    if (swapType === "delete") {
-      oldNode.remove();
-      return;
-    }
-    if (swapType === "none") {
-      return;
-    }
-    throw new Error(`Unknown swap type: ${swapType}`);
+    oldNode.parentNode.insertBefore(newNode, oldNode);
+    return;
   }
-}
-
-function normalizeNodeList(node) {
-  if (node instanceof Document) {
-    // Is there a body element in the document?
-    const bodyNode = node.querySelector("body");
-    if (bodyNode) {
-      return Array.from(bodyNode.childNodes);
-    }
-    // Is there an HTML element in the document?
-    const htmlNode = node.querySelector("html");
-    if (htmlNode) {
-      return Array.from(htmlNode.childNodes);
-    }
-    // Otherwise, create a document fragment and return all child nodes
-    const fragment = document.createDocumentFragment();
-    for (const child of node.childNodes) {
-      fragment.appendChild(child);
-    }
-    return Array.from(fragment.childNodes);
+  if (swapType === "after") {
+    oldNode.parentNode.insertBefore(newNode, oldNode.nextSibling);
+    return;
   }
-  //   return Array.from(node.childNodes);
-  // }
-  if (node instanceof NodeList || Array.isArray(node)) {
-    return Array.from(node);
+  if (swapType === "prepend") {
+    oldNode.insertBefore(newNode, oldNode.firstChild);
+    return;
   }
-  return [node];
-}
-function documentToString(doc) {
-  const serializer = new XMLSerializer();
-  return serializer.serializeToString(doc);
+  if (swapType === "append") {
+    oldNode.appendChild(newNode);
+    return;
+  }
+  if (swapType === "delete") {
+    oldNode.remove();
+    return;
+  }
+  if (swapType === "none") {
+    return;
+  }
+  throw new Error(`Unknown swap type: ${swapType}`);
 }
 
 function attachEventListener(trigger, handler, node) {

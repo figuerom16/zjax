@@ -12,8 +12,9 @@
   
   <body>
     <h1>This is ZJAX</h1>
-    <p>This will be replaced by ZJAX.</p>
-    <a id="moby" href="https://httpbin.org/html" z-swap="p">Fetch Moby Dick</a>
+    <p>This will not be replaced by ZJAX. </p>
+    <p class="doobie">This will be replaced by ZJAX.</p>
+    <a id="moby" href="https://httpbin.org/html" z-swap="*->p.doobie">Fetch Moby Dick</a>
     <div id="appendable">
       <button z-swap="@click . button->#appendable|append">Append the h1</button>
     </div>
