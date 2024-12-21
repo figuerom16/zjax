@@ -1,12 +1,12 @@
 # ZJAX
 
-ZJAX is a lightweight yet powerful JavaScript library (just 2KB gzipped) that brings modern SPA-like interactivity to your web pages with minimal effort. By simply adding intuitive "z-tag" attributes like `z-swap` and `z-action` to your HTML elements, ZJAX lets you dynamically update parts of a web page or bind client-side JavaScript actions directly to the DOM—all without writing verbose JavaScript code.
+ZJAX is a lightweight yet powerful JavaScript library (just 2.5KB gzipped) that brings modern SPA-like interactivity to your web pages with minimal effort. By simply adding intuitive "z-tag" attributes like `z-swap` and `z-action` to your HTML elements, ZJAX lets you dynamically update parts of a web page or bind client-side JavaScript actions directly to the DOM—all without writing verbose JavaScript code.
 
 Inspired by HTMX, Hotwire, and Unpoly and compatible with *any* SSR backend like Rails, Laravel, Django, Astro – or even Wordpress, ZJAX seamlessly integrates into your workflow. 
 
 ## Getting started
 
-To install ZJAX, simply include the ZJAX CDN link in your document head.
+Just include the ZJAX CDN link in your document head.
 
 ```html
 <head>
@@ -41,7 +41,7 @@ You can try this right now with a plain HTML file.
 </html>
 ```
 
-By adding the `z-swap` tag, this link will be hijacked by ZJAX, replacing it's default behavior with an AJAX request to httpbin.org. It then replaces the closest `p` element in our local DOM with the `p` element found in the response HTML *without* affecting any other parts of the page. 
+Adding `z-swap` hijacks this link so that its default behavior is replaced with an AJAX request. The specified `p` is then plucked from response HTML and replaces our local `p` tag *without* affecting any other parts of the page. 
 
 In this example, we specified only the element to be swapped and other specifiers are inferred from context. By default, for an `a` tag, `z-swap` will listen for a `click` event as its Trigger, the HTTP Method will be `GET`, and the Endpoint URL is inferred from `href` value. But these can also be defined explicitly. For the example above, this is the same:
 ```html
@@ -63,12 +63,12 @@ We've omitted the `href` value for brevity and because it will be ignored anyway
 Try prepending `@mouseover` to the `z-swap` value.
 
 ```html
-<a href="https://npmjs.com" z-swap="@mouseover main">
-  Click me
+<a href="https://httpbin.org/html" z-swap="@mouseover p">
+  Fetch Moby Dick
 </a>
 ```
 
-Any standard DOM event as well as some special ones added by ZJAX and any custom events you have defined globally can be specified with an @-sign like `@submit`, `@blur`, `@input`, `@dblclick`, `@my-custom-event`, etc.
+Any standard DOM event as well as some special ones added by ZJAX and any custom events you have defined globally can be specified prefixed with an @-sign like `@submit`, `@blur`, `@input`, `@dblclick`, `@my-custom-event`, etc.
 
 #### Specifying the Endpoint
 
@@ -76,15 +76,15 @@ The example above infers the endpoint from the `a`-tag's `href` value. But for a
 
 ```html
 <button z-swap="@mouseover https://httpbin.org/html p">
-  Click me
-</a>
+  Fetch Moby Dick
+</button>
 ```
 
-The Endpoint specifier can be any valid URL including local absolute or relative paths as long as it starts with the protocol ("http://" or "https://"), or starts with an absolute or relative path which includes a slash ("/", or "./"), or is a single dot to refer to the current URL (".").
+The Endpoint specifier can be any valid URL including local absolute or relative paths as long as it starts with "http://" or "https://", or starts with "/", or "./", or is a single dot ".". Note that the Endpoint *must* start with one those options or it will not be recognized as a Endpoint.
 
 #### Specifying the HTTP-Method
 
-The example above defaults to using a GET method which is the default when using `z-swap` on any element except `form` (then the default is POST). The HTTP methods GET, POST, PUT, PATCH, or DELETE are supported.
+The example above will use the GET method which is the default when using `z-swap` on any element except `form` (then the default is POST). The HTTP methods GET, POST, PUT, PATCH, or DELETE are supported.
 
 ```html
 <button z-swap="DELETE /books/123 #book-form">
@@ -92,23 +92,23 @@ The example above defaults to using a GET method which is the default when using
 </a>
 ```
 
-Notice that in the example above, we didn't specify the Trigger event because the default `click` is just fine for our button in this case. Here, the HTTP method and a local URL are specified along with the element to be swapped.
+Notice that in the example above, we didn't specify the Trigger event because the default `click` works great for our button in this case. Here, the HTTP method and a local URL are specified along with the element to be swapped.
 
 #### Specifying the SWAP-Element
 
-The swap element is specified with CSS selector syntax like `p`, `#cart`, or `footer > span`. If only one element is specified, it will be used to identify both the incoming element and the existing element to be replaced. Specifying multiple elements to swap at once as well as specifying separate incoming and existing element selectors are also supported. The default Swap-Type which replaces the entire element can also be changed.
+The swap element is specified with CSS selector syntax like `p`, `#cart`, or `nav > a`. If only one element is specified, it will be used to identify both the incoming element and the existing element to be replaced. Specifying multiple elements to swap at once as well as specifying separate incoming and existing element selectors are also supported. The default Swap-Type used to replace the entire element can also be changed.
 
 #### Swapping multiple elements
 
 We aren't limited to swapping just one element. Multiple elements can be swapped at the same time separated by commas. 
 
 ```html
-<button z-swap="/books/123 #book-form, #cart-total">
+<button z-swap="/books/123 #book-form, #cart">
   Click me
 </a>
 ```
 
-In the example above, both the `#book-form` and `#cart-total` elements will be swapped out and replaced with elements found in the response. 
+In the example above, both the `#book-form` and `#cart-total` elements will be swapped out and replaced with matching elements found in the response. 
 
 #### Swapping incoming->existing elements
 
@@ -132,7 +132,7 @@ In the above example, presumably the `/books/123` route returns a partial contai
 
 #### Specifying the Swap-Type
 
-The default Swap-Type is `outer` which replaces the element in its entirety. Alternatively, you may want to replace only the inner content of the element, or maybe insert the new element *after* the existing one. The Swap-Type can be appended to the existing element using the pipe `|` character. Note that the Swap-Type only affects the existing element.
+The default Swap-Type is `outer` which replaces the element in its entirety. Alternatively, you may want to replace only the inner content of the element, or maybe insert the new element *after* the existing one. The Swap-Type can be appended to the old element using the pipe `|` character. Note that the Swap-Type only affects the old element.
 
 ```html
 <button z-swap="/books/123 #cart-total|after">
