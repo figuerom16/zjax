@@ -1,7 +1,7 @@
 {
   "name": "zjax",
   "version": "1.0.9",
-  "description": "Zjax is a tiny Javascript library that makes it possible to add modern SPA-like interactivity to a website by sprinkling \"z-tag\" attributes onto plain HTML elements.",
+  "description": "ZJAX is a lightweight yet powerful JavaScript library that brings modern SPA-like interactivity to your web pages with minimal effort",
   "main": "dist/zjax.min.js",
   "scripts": {
     "minify": "terser zjax.js -o dist/zjax.min.js",
