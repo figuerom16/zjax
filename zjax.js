@@ -3,8 +3,17 @@ window.zjax = getGlobalZjaxObject();
 
 // Constants
 const httpMethods = ["GET", "POST", "PUT", "PATCH", "DELETE"];
+const swapTypes = [
+  "outer",
+  "inner",
+  "before",
+  "after",
+  "prepend",
+  "append",
+  "none",
+  "delete",
+];
 const isVTSupported = document.startViewTransition !== undefined;
-
 // Parse the DOM on load.
 addEventListener("DOMContentLoaded", function () {
   debug("Parsing DOM");
@@ -46,34 +55,34 @@ function getGlobalZjaxObject() {
   };
 }
 
-function parseZSwaps(documentOrNode) {
+async function parseZSwaps(documentOrNode) {
   const zSwapNodes = getMatchingNodes(documentOrNode, "[z-swap]");
   debug(
     `Found ${zSwapNodes.length} z-swap nodes in ${prettyNodeName(
       documentOrNode
     )}`
   );
-  zSwapNodes.forEach(function (node) {
-    // try {
-    zSwapString = node.getAttribute("z-swap");
-    const zSwapObject = getZSwapObject(zSwapString, node);
-    // Add the swap function listener to the node
-    const zSwapFunction = getZSwapFunction(zSwapObject, node);
-    attachEventListener(zSwapObject.trigger, zSwapFunction, node);
-    attachMutationObserver(zSwapObject.trigger, zSwapFunction, node);
-    zjax.debug &&
-      debug(
-        `Added z-swap for '${zSwapObject.trigger}' events to ${prettyNodeName(
-          node
-        )}`
+  for (const node of zSwapNodes) {
+    try {
+      zSwapString = node.getAttribute("z-swap");
+      const zSwapObject = getZSwapObject(zSwapString, node);
+      // Add the swap function listener to the node
+      const zSwapFunction = getZSwapFunction(zSwapObject, node);
+      attachEventListener(zSwapObject.trigger, zSwapFunction, node);
+      attachMutationObserver(zSwapObject.trigger, zSwapFunction, node);
+      zjax.debug &&
+        debug(
+          `Added z-swap for '${zSwapObject.trigger}' events to ${prettyNodeName(
+            node
+          )}`
+        );
+    } catch (error) {
+      console.error(
+        `ZJAX ERROR – Unable to parse z-swap: ${error.message}\n`,
+        node
       );
-    // } catch (error) {
-    //   console.error(
-    //     `ZJAX ERROR – Unable to parse z-swap: ${error.message}\n`,
-    //     node
-    //   );
-    // }
-  });
+    }
+  }
 }
 
 // Helper functions
@@ -115,6 +124,8 @@ function getZSwapObject(zSwapString, node) {
       zSwapObject.endpoint = node.action;
     } else if (node.tagName === "A") {
       zSwapObject.endpoint = node.href;
+    } else {
+      throw new Error("No endpoint inerrable or specified");
     }
   }
   return zSwapObject;
@@ -174,6 +185,9 @@ function getSwaps(swapString) {
     swap["new"] = newNode;
     swap["old"] = oldNode;
     swap["swapType"] = swapType || "outer";
+    if (swap["swapType"] && !swapTypes.includes(swap["swapType"])) {
+      throw new Error(`Invalid swap type: ${swap["swapType"]}`);
+    }
     swaps.push(swap);
   });
   return swaps;
@@ -185,30 +199,30 @@ function getZSwapFunction(zSwap, node) {
     event.stopPropagation();
     debug("z-swap triggered for", zSwap);
     // Call the action
-    // try {
-    const responseDOM = await getResponseDOM(zSwap.method, zSwap.endpoint);
-    // Swap nodes
-    zSwap.swaps.forEach(function (swap) {
-      // Get the source and target nodes
-      const [newNode, oldNode] = getNewAndOldNodes(responseDOM, swap);
-      // Before swapping in a source node, parse it for z-swaps
-      debug(`Parsing incoming response for z-swaps`);
-      parseZSwaps(newNode);
-      // Swap the node using a view transition?
-      if (isVTSupported && zjax.transitions) {
-        document.startViewTransition(async () => {
+    try {
+      const responseDOM = await getResponseDOM(zSwap.method, zSwap.endpoint);
+      // Swap nodes
+      zSwap.swaps.forEach(function (swap) {
+        // Get the source and target nodes
+        const [newNode, oldNode] = getNewAndOldNodes(responseDOM, swap);
+        // Before swapping in a source node, parse it for z-swaps
+        debug(`Parsing incoming response for z-swaps`);
+        parseZSwaps(newNode);
+        // Swap the node using a view transition?
+        if (isVTSupported && zjax.transitions) {
+          document.startViewTransition(() => {
+            swapOneNode(oldNode, newNode, swap.swapType);
+          });
+        } else {
           swapOneNode(oldNode, newNode, swap.swapType);
-        });
-      } else {
-        swapOneNode(oldNode, newNode, swap.swapType);
-      }
-    });
-    // } catch (error) {
-    //   console.error(
-    //     `ZJAX ERROR – Unable to execute z-swap function: ${error.message}\n`,
-    //     node
-    //   );
-    // }
+        }
+      });
+    } catch (error) {
+      console.error(
+        `ZJAX ERROR – Unable to execute z-swap function: ${error.message}\n`,
+        node
+      );
+    }
   };
 }
 
@@ -254,73 +268,83 @@ function getNewAndOldNodes(responseDOM, swap) {
   return [newNode, oldNode];
 }
 
-function getNearestNode(node, selector) {
-  // THIS IDEA WAS SCRAPPED BECAUSE ITS TOO COMPLICATED FOR THE DEV TO USE
-  // IT'S REALLY ONLY NEEDED FOR VALIDATE (FIELDSETS)
-  //   console.log("node", node);
-  //   // Is this node itself a match?
-  //   if (node.matches(selector)) {
-  //     return node;
-  //   }
-  //   // Does this node contain a node matching the selector?
-  //   const containedNode = node.querySelector(selector);
-  //   if (containedNode) {
-  //     return containedNode;
-  //   }
-  //   // Return the closest ancestor node that matches the selector
-  //   const closestNode = node.closest(selector);
-  //   if (closestNode) {
-  //     return closestNode;
-  //   }
-  //   return null;
-}
-
 function swapOneNode(oldNode, newNode, swapType) {
-  // Since a newNode might be a single node or a while document (which may just contain
-  // a handful of nodes), let's just normalize all newNodes to be a node list.
-  const newNodeList = normalizeNodeList(newNode);
+  // Since a newNode might be a single node or a whole document (which may just contain
+  // a handful of nodes), let's just normalize all newNodes to be an array.
+  const newNodes = normalizeNodeList(newNode);
+
+  // Outer
   if (swapType === "outer") {
     const oldNodeParent = oldNode.parentNode;
-    newNodeList.forEach((item) => {
-      console.log("item", item);
-      console.log("item.tagName", item.tagName);
+    newNodes.forEach((item) => {
       oldNodeParent.insertBefore(item, oldNode);
     });
     oldNodeParent.removeChild(oldNode);
     return;
   }
+
+  // Inner
   if (swapType === "inner") {
-    oldNode.innerHTML = isDocResponse
-      ? documentToString(newNode)
-      : newNode.outerHTML;
+    oldNode.innerHTML = "";
+    newNodes.forEach((item) => {
+      oldNode.appendChild(item);
+    });
     return;
   }
+
+  // Before
   if (swapType === "before") {
-    let content;
-    if (isDocResponse) {
-      oldNode.parentNode.insertBefore(newNode, oldNode);
-      return;
-    }
-    if (swapType === "after") {
-      oldNode.parentNode.insertBefore(newNode, oldNode.nextSibling);
-      return;
-    }
-    if (swapType === "prepend") {
-      oldNode.insertBefore(newNode, oldNode.firstChild);
-      return;
-    }
-    if (swapType === "append") {
-      oldNode.appendChild(newNode);
-      return;
-    }
-    if (swapType === "delete") {
-      oldNode.remove();
-      return;
-    }
-    if (swapType === "none") {
-      return;
-    }
-    throw new Error(`Unknown swap type: ${swapType}`);
+    newNodes.forEach((item) => {
+      oldNode.parentNode.insertBefore(item, oldNode);
+    });
+    return;
+  }
+
+  // After
+  if (swapType === "after") {
+    const parentNode = oldNode.parentNode;
+    referenceNodeToAppendTo = oldNode;
+    newNodes.forEach((item) => {
+      if (item === parentNode.lastChild) {
+        parentNode.appendChild(item);
+      } else {
+        parentNode.insertBefore(item, referenceNodeToAppendTo.nextSibling); // Otherwise, insert after the reference node
+      }
+      referenceNodeToAppendTo = item;
+    });
+    return;
+  }
+
+  // Prepend
+  if (swapType === "prepend") {
+    const firstChild = oldNode.firstChild;
+    newNodes.forEach((item) => {
+      if (firstChild) {
+        oldNode.insertBefore(item, firstChild);
+      } else {
+        oldNode.appendChild(item);
+      }
+    });
+    return;
+  }
+
+  // Append
+  if (swapType === "append") {
+    newNodes.forEach((item) => {
+      oldNode.appendChild(item);
+    });
+    return;
+  }
+
+  // Delete
+  if (swapType === "delete") {
+    oldNode.remove();
+    return;
+  }
+
+  // None
+  if (swapType === "none") {
+    return;
   }
 }
 
@@ -349,10 +373,6 @@ function normalizeNodeList(node) {
     return Array.from(node);
   }
   return [node];
-}
-function documentToString(doc) {
-  const serializer = new XMLSerializer();
-  return serializer.serializeToString(doc);
 }
 
 function attachEventListener(trigger, handler, node) {
