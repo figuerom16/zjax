@@ -1,11 +1,12 @@
 {
   "name": "zjax",
-  "version": "1.0.12",
+  "version": "1.0.15",
   "description": "ZJAX is a lightweight yet powerful JavaScript library that brings modern SPA-like interactivity to your web pages with minimal effort",
   "main": "dist/zjax.min.js",
   "scripts": {
     "minify": "terser zjax.js -o dist/zjax.min.js",
-    "size": "gzip -c dist/zjax.min.js | wc -c | awk '{print \"Gzipped and minified size: \" $1 / 1024 \" KB\"}'"
+    "size": "gzip -c dist/zjax.min.js | wc -c | awk '{print \"Gzipped and minified size: \" $1 / 1024 \" KB\"}'",
+    "semver": "node semver.js"
   },
   "files": [
     "dist/zjax.min.js"

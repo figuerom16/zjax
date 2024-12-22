@@ -132,7 +132,7 @@ In the above example, presumably the `/books/123` route returns a partial contai
 
 #### Specifying the Swap-Type
 
-The default Swap-Type is `outer` which replaces the element in its entirety. Alternatively, you may want to replace only the inner content of the element, or maybe insert the new element *after* the existing one. The Swap-Type can be appended to the old element using the pipe `|` character. Note that the Swap-Type only affects the old element.
+The default Swap-Type is `outer` which replaces the element in its entirety. Alternatively, you may want to replace only the inner content of the element, or maybe insert the response element *after* the existing one. The Swap-Type can be appended to the target element using the pipe `|` character. Note that the Swap-Type only affects the target element.
 
 ```html
 <button z-swap="/books/123 #cart-total|after">
@@ -142,14 +142,14 @@ The default Swap-Type is `outer` which replaces the element in its entirety. Alt
 
 Swap type available include:
 
-`outer` - Morph the entire element (default)
-`inner` - Morph only inner content
-`before` - Insert before this element
-`prepend` - Insert before all other inner content
-`after` - Insert after this element
-`append` - Insert after all other inner content
-`delete` - Ignore returned value and delete this element
-`none` - Do nothing (typically used with dynamic values)
+`outer` - Morph the entire element (default)  
+`inner` - Morph only inner content  
+`before` - Insert before this element  
+`prepend` - Insert before all other inner content  
+`after` - Insert after this element  
+`append` - Insert after all other inner content  
+`delete` - Ignore returned value and delete this element  
+`none` - Do nothing (typically used with dynamic values)  
 
 
 

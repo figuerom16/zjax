@@ -172,18 +172,18 @@ function getMatchingNodes(documentOrNode, selector) {
 function getSwaps(swapString) {
   // Parse a  like: "foo->#bar|inner, #baz" into an array of objects
   // [
-  //   { new: "foo", old: "#bar", swapStringType: "inner" },
-  //   { new: "#baz", old: "#baz", swapType: null }
+  //   { response: "foo", target: "#bar", swapStringType: "inner" },
+  //   { response: "#baz", target: "#baz", swapType: "outer" }
   // ]
   const swaps = [];
   swapString.split(",").forEach(function (swapPart) {
     const swap = {};
-    const newAndOldNodes = swapPart.split("->");
-    const oldAndSwapType = newAndOldNodes.pop();
-    const [oldNode, swapType] = oldAndSwapType.split("|");
-    const newNode = newAndOldNodes[0] || oldNode;
-    swap["new"] = newNode;
-    swap["old"] = oldNode;
+    const responseAndTargetSwaps = swapPart.split("->");
+    const targetAndSwapType = responseAndTargetSwaps.pop();
+    const [targetNode, swapType] = targetAndSwapType.split("|");
+    const responseNode = responseAndTargetSwaps[0] || targetNode;
+    swap["response"] = responseNode;
+    swap["target"] = targetNode;
     swap["swapType"] = swapType || "outer";
     if (swap["swapType"] && !swapTypes.includes(swap["swapType"])) {
       throw new Error(`Invalid swap type: ${swap["swapType"]}`);
@@ -204,17 +204,17 @@ function getZSwapFunction(zSwap, node) {
       // Swap nodes
       zSwap.swaps.forEach(function (swap) {
         // Get the source and target nodes
-        const [newNode, oldNode] = getNewAndOldNodes(responseDOM, swap);
+        const [responseNode, targetNode] = getNewAndOldNodes(responseDOM, swap);
         // Before swapping in a source node, parse it for z-swaps
         debug(`Parsing incoming response for z-swaps`);
-        parseZSwaps(newNode);
+        parseZSwaps(responseNode);
         // Swap the node using a view transition?
         if (isVTSupported && zjax.transitions) {
           document.startViewTransition(() => {
-            swapOneNode(oldNode, newNode, swap.swapType);
+            swapOneNode(targetNode, responseNode, swap.swapType);
           });
         } else {
-          swapOneNode(oldNode, newNode, swap.swapType);
+          swapOneNode(targetNode, responseNode, swap.swapType);
         }
       });
     } catch (error) {
@@ -251,74 +251,77 @@ async function getResponseDOM(method, endpoint) {
 }
 
 function getNewAndOldNodes(responseDOM, swap) {
-  let oldNode;
-  let newNode;
+  let targetNode;
+  let responseNode;
 
-  if (swap.old === "*") {
+  if (swap.target === "*") {
     // It isn't possible to use JS to replace the entire document
     // so we'll treat '*' as an alias for 'body'
-    oldNode = document.querySelector("body");
-    if (!oldNode) {
+    targetNode = document.querySelector("body");
+    if (!targetNode) {
       throw new Error("Unable to find body element in local DOM to swap into");
     }
   } else {
-    oldNode = document.querySelector(swap.old);
+    targetNode = document.querySelector(swap.target);
   }
 
-  newNode =
-    swap.new === "*" ? responseDOM : responseDOM.querySelector(swap.new);
+  responseNode =
+    swap.response === "*"
+      ? responseDOM
+      : responseDOM.querySelector(swap.response);
 
-  console.log("newNode", newNode);
-  // Make sure there's a valid old node for all swap types except "none"
-  if (!oldNode && swap.swapType !== "none") {
-    throw new Error(`Target node '${swap.old}' does not exist in local DOM`);
+  // Make sure there's a valid target node for all swap types except "none"
+  if (!targetNode && swap.swapType !== "none") {
+    throw new Error(`Target node '${swap.target}' does not exist in local DOM`);
   }
 
-  // Make sure there's a valid new node for all swap types except "none" or "delete"
-  if (!newNode && swap.swapType !== "none" && swap.swapType !== "delete") {
-    throw new Error(`Source node ${swap.new} does not exist in response DOM`);
+  // Make sure there's a valid response node for all swap types except "none" or "delete"
+  if (!responseNode && swap.swapType !== "none" && swap.swapType !== "delete") {
+    throw new Error(
+      `Source node ${swap.response} does not exist in response DOM`
+    );
   }
 
-  return [newNode, oldNode];
+  return [responseNode, targetNode];
 }
 
-function swapOneNode(oldNode, newNode, swapType) {
-  // Since a newNode might be a single node or a whole document (which may just contain
-  // a handful of nodes), let's just normalize all newNodes to be an array.
-  const newNodes = normalizeNodeList(newNode);
+function swapOneNode(targetNode, responseNode, swapType) {
+  // Since a responseNode might be a single node or a whole document (which may just contain
+  // a handful of nodes), let's just normalize all responseNodes to be an array.
+  const responseNodes = normalizeNodeList(responseNode);
 
   // Outer
   if (swapType === "outer") {
-    const oldNodeParent = oldNode.parentNode;
-    newNodes.forEach((item) => {
-      oldNodeParent.insertBefore(item, oldNode);
+    const targetNodeParent = targetNode.parentNode;
+    responseNodes.forEach((item) => {
+      targetNodeParent.insertBefore(item, targetNode);
     });
-    oldNodeParent.removeChild(oldNode);
+    targetNodeParent.removeChild(targetNode);
     return;
   }
 
   // Inner
   if (swapType === "inner") {
-    oldNode.textContent = "";
-    newNodes.forEach((item) => {
-      oldNode.appendChild(item);
+    targetNode.textContent = "";
+    responseNodes.forEach((item) => {
+      targetNode.appendChild(item);
     });
     return;
   }
 
   // Before
   if (swapType === "before") {
-    newNodes.forEach((item) => {
-      oldNode.parentNode.insertBefore(item, oldNode);
+    responseNodes.forEach((item) => {
+      targetNode.parentNode.insertBefore(item, targetNode);
     });
     return;
   }
 
   // After
   if (swapType === "after") {
-    const parentNode = oldNode.parentNode;
-    referenceNodeToAppendTo = oldNode;
-    newNodes.forEach((item) => {
+    const parentNode = targetNode.parentNode;
+    referenceNodeToAppendTo = targetNode;
+    responseNodes.forEach((item) => {
       if (item === parentNode.lastChild) {
         parentNode.appendChild(item);
       } else {
@@ -331,12 +334,12 @@ function swapOneNode(oldNode, newNode, swapType) {
 
   // Prepend
   if (swapType === "prepend") {
-    const firstChild = oldNode.firstChild;
-    newNodes.forEach((item) => {
+    const firstChild = targetNode.firstChild;
+    responseNodes.forEach((item) => {
       if (firstChild) {
-        oldNode.insertBefore(item, firstChild);
+        targetNode.insertBefore(item, firstChild);
       } else {
-        oldNode.appendChild(item);
+        targetNode.appendChild(item);
       }
     });
     return;
@@ -344,15 +347,15 @@ function swapOneNode(oldNode, newNode, swapType) {
 
   // Append
   if (swapType === "append") {
-    newNodes.forEach((item) => {
-      oldNode.appendChild(item);
+    responseNodes.forEach((item) => {
+      targetNode.appendChild(item);
     });
     return;
   }
 
   // Delete
   if (swapType === "delete") {
-    oldNode.remove();
+    targetNode.remove();
     return;
   }
 
