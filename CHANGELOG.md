@@ -6,3 +6,7 @@
 
 - Support added for swap selector "*" and all references to new->old nodes changed to response->target nodes.
 
+## Previous Versions
+
+- Built up to point of very basic z-swap functionality with debug and full docs for z-swap attribute.
+

@@ -1,12 +1,12 @@
 const fs = require("fs");
 const path = require("path");
 const { execSync } = require("child_process");
+const readline = require("readline");
 
 // Path to your changelog and package.json
 const changelogPath = path.join(__dirname, "CHANGELOG.md");
 const packageJsonPath = path.join(__dirname, "package.json");
 
-// Function to increment the version
 function incrementVersion(version) {
   const parts = version.split(".");
   const patch = parseInt(parts[2], 10) + 1; // Increment the patch version
@@ -14,10 +14,9 @@ function incrementVersion(version) {
   return parts.join(".");
 }
 
-// Function to prepend to changelog
-function prependToChangelog(version, message) {
+function prependToChangelog(version, changelog) {
   const currentDate = new Date().toISOString().split("T")[0]; // Get current date in YYYY-MM-DD format
-  const changelogEntry = `## ${version} - ${currentDate}\n\n- ${message}\n\n`;
+  const changelogEntry = `## ${version} - ${currentDate}\n\n- ${changelog}\n\n`;
 
   // Read existing changelog
   const changelogContent = fs.existsSync(changelogPath)
@@ -31,7 +30,6 @@ function prependToChangelog(version, message) {
   fs.writeFileSync(changelogPath, updatedChangelog, "utf8");
 }
 
-// Function to update the version in package.json
 function updateVersionInPackageJson() {
   const packageJson = require(packageJsonPath);
   const newVersion = incrementVersion(packageJson.version);
@@ -49,14 +47,13 @@ function updateVersionInPackageJson() {
   return newVersion;
 }
 
-// Function to commit changes using Git
-function commitChanges(message) {
+function commitChanges(changelog) {
   try {
     // Stage all changes
     execSync("git add .", { stdio: "inherit" });
 
-    // Commit with the provided message
-    execSync(`git commit -m "${message}"`, { stdio: "inherit" });
+    // Commit with the provided changelog
+    execSync(`git commit -m "${changelog}"`, { stdio: "inherit" });
 
     console.log("Changes committed successfully.");
   } catch (error) {
@@ -65,31 +62,61 @@ function commitChanges(message) {
   }
 }
 
-// Main function to update changelog, version, and commit changes
-function updateChangelogAndVersion(message) {
+function updateChangelogAndVersion(changelog) {
   const newVersion = updateVersionInPackageJson();
-  prependToChangelog(newVersion, message);
+  prependToChangelog(newVersion, changelog);
 
   console.log(`Version updated to ${newVersion} and changelog entry added.`);
-
-  // Commit the changes
-  commitChanges(message);
 }
 
-const args = process.argv.slice(2);
+async function prompt(question, defaultValue) {
+  return new Promise((resolve) => {
+    const rl = readline.createInterface({
+      input: process.stdin,
+      output: process.stdout,
+    });
 
-if (args.length > 1) {
-  console.error(
-    "*** SemVer Error: Too many arguments (just one description as a string please) ***"
+    rl.question(question, (answer) => {
+      rl.close();
+      resolve(answer || defaultValue);
+    });
+  });
+}
+
+async function confirm(question, defaultValue = "n") {
+  const promptOptions = defaultValue === "y" ? "Y/n" : "y/N";
+  const answer = await prompt(`${question} [${promptOptions}]`, defaultValue);
+  return answer.toLowerCase() === "y";
+}
+
+async function promptForChangelog() {
+  console.log(
+    "Enter each changelog item on a new line.\nPress enter (submit a blank line) to complete."
   );
-  process.exit(1); // Exit with error code if the number of arguments is incorrect
+  const items = [];
+  while (true) {
+    const item = await prompt("\n- ");
+    if (!item) {
+      break;
+    }
+    items.push(item);
+  }
+  const changelog = items.map((item) => `- ${item}`).join("\n");
+  return changelog;
 }
 
-const message = args[0];
+async function main() {
+  const changelog = await promptForChangelog();
+  // updateChangelogAndVersion(changelog);
 
-if (!message) {
-  console.error("\n*** SemVer Error: Missing changelog description ***\n");
-  process.exit(1); // Exit with error code
+  const shouldCommit = await confirm("\nCommit changes to Git?", "y");
+
+  if (shouldCommit) {
+    commitChanges(changelog);
+    console.log("Changes committed.");
+  } else {
+    console.log("Changes not committed.");
+  }
 }
 
-updateChangelogAndVersion(message);
+main();
