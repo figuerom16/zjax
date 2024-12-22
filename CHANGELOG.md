@@ -1,3 +1,8 @@
+## 1.0.16 - 2024-12-22
+
+- - Testing semver script
+- Updated semver to commit/push git (but not sure if it works yet)
+
 ## 1.0.15 - 2024-12-22
 
 - Testing semver with Git

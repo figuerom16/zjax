@@ -55,9 +55,21 @@ function commitChanges(changelog) {
     // Commit with the provided changelog
     execSync(`git commit -m "${changelog}"`, { stdio: "inherit" });
 
-    console.log("Changes committed successfully.");
+    console.log("\nChanges committed to Git");
+    return true;
   } catch (error) {
-    console.error("Error committing changes:", error.message);
+    console.error("\nError committing changes:", error.message);
+    process.exit(1);
+  }
+}
+
+function pushCommit() {
+  try {
+    execSync(`git push`, { stdio: "inherit" });
+    console.log("\nCommit pushed to Git");
+    return true;
+  } catch (error) {
+    console.error("\nError pushing commit: ", error.message);
     process.exit(1);
   }
 }
@@ -66,7 +78,7 @@ function updateChangelogAndVersion(changelog) {
   const newVersion = updateVersionInPackageJson();
   prependToChangelog(newVersion, changelog);
 
-  console.log(`Version updated to ${newVersion} and changelog entry added.`);
+  console.log(`\nVersion updated to ${newVersion} and changelog entry added`);
 }
 
 async function prompt(question, defaultValue) {
@@ -85,7 +97,7 @@ async function prompt(question, defaultValue) {
 
 async function confirm(question, defaultValue = "n") {
   const promptOptions = defaultValue === "y" ? "Y/n" : "y/N";
-  const answer = await prompt(`${question} [${promptOptions}]`, defaultValue);
+  const answer = await prompt(`${question} [${promptOptions}] `, defaultValue);
   return answer.toLowerCase() === "y";
 }
 
@@ -107,15 +119,17 @@ async function promptForChangelog() {
 
 async function main() {
   const changelog = await promptForChangelog();
-  // updateChangelogAndVersion(changelog);
+  updateChangelogAndVersion(changelog);
 
-  const shouldCommit = await confirm("\nCommit changes to Git?", "y");
-
-  if (shouldCommit) {
-    commitChanges(changelog);
-    console.log("Changes committed.");
+  if (await confirm("\nCommit changes to Git?", "y")) {
+    const committed = commitChanges(changelog);
+    if (committed && (await confirm("\nPush this commit to Git?", "y"))) {
+      pushCommit();
+    } else {
+      console.log("\nChanges were not pushed");
+    }
   } else {
-    console.log("Changes not committed.");
+    console.log("\nChanges were not committed");
   }
 }
 
