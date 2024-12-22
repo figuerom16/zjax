@@ -74,6 +74,17 @@ function pushCommit() {
   }
 }
 
+function publishToNpm() {
+  try {
+    execSync(`npm publish`, { stdio: "inherit" });
+    console.log("\nPublished to NPM");
+    return true;
+  } catch (error) {
+    console.error("\nError publishing to NPM: ", error.message);
+    process.exit(1);
+  }
+}
+
 function updateChangelogAndVersion(changelog) {
   const newVersion = updateVersionInPackageJson();
   prependToChangelog(newVersion, changelog);
@@ -118,12 +129,16 @@ async function promptForChangelog() {
 }
 
 async function main() {
+  // Update the changelog and version in package.json
   const changelog = await promptForChangelog();
   updateChangelogAndVersion(changelog);
 
+  // Commit and push the changes to Git
   if (await confirm("\nCommit changes to Git?", "y")) {
+    // Commit
     const committed = commitChanges(changelog);
     if (committed && (await confirm("\nPush this commit to Git?", "y"))) {
+      // Push
       pushCommit();
     } else {
       console.log("\nChanges were not pushed");
@@ -131,6 +146,14 @@ async function main() {
   } else {
     console.log("\nChanges were not committed");
   }
+
+  if (await confirm("\nPublish to npm?", "y")) {
+    publishToNpm();
+  } else {
+    console.log("\nNot publishing to npm");
+  }
+
+  console.log("\nFinished!");
 }
 
 main();

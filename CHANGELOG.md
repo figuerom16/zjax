@@ -1,3 +1,7 @@
+## 1.0.17 - 2024-12-22
+
+- - Updated SemVer to also publish to NPM for me
+
 ## 1.0.16 - 2024-12-22
 
 - - Testing semver script
