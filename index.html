@@ -16,7 +16,8 @@
     <p class="doobie">This will be replaced by ZJAX.</p>
     <a id="moby" href="https://httpbin.org/html" z-swap="*->h1|inner, button|delete">Fetch Moby Dick</a>
     <div id="appendable">
-      <button z-swap="@click . h1->button|after">Append the h1</button>
+      <button z-swap="@click . *->*|after">Append the h1</button>
     </div>
+    <button z-swap="./other.html h2->body|inner">Get Other</button>
   </body>
 </html>

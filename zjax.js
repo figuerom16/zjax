@@ -220,7 +220,8 @@ function getZSwapFunction(zSwap, node) {
     } catch (error) {
       console.error(
         `ZJAX ERROR – Unable to execute z-swap function: ${error.message}\n`,
-        node
+        node,
+        error.stack
       );
     }
   };
@@ -250,11 +251,24 @@ async function getResponseDOM(method, endpoint) {
 }
 
 function getNewAndOldNodes(responseDOM, swap) {
-  const newNode =
+  let oldNode;
+  let newNode;
+
+  if (swap.old === "*") {
+    // It isn't possible to use JS to replace the entire document
+    // so we'll treat '*' as an alias for 'body'
+    oldNode = document.querySelector("body");
+    if (!oldNode) {
+      throw new Error("Unable to find body element in local DOM to swap into");
+    }
+  } else {
+    oldNode = document.querySelector(swap.old);
+  }
+
+  newNode =
     swap.new === "*" ? responseDOM : responseDOM.querySelector(swap.new);
 
-  const oldNode = document.querySelector(swap.old);
-
+  console.log("newNode", newNode);
   // Make sure there's a valid old node for all swap types except "none"
   if (!oldNode && swap.swapType !== "none") {
     throw new Error(`Target node '${swap.old}' does not exist in local DOM`);
@@ -285,7 +299,7 @@ function swapOneNode(oldNode, newNode, swapType) {
 
   // Inner
   if (swapType === "inner") {
-    oldNode.innerHTML = "";
+    oldNode.textContent = "";
     newNodes.forEach((item) => {
       oldNode.appendChild(item);
     });
@@ -349,12 +363,8 @@ function swapOneNode(oldNode, newNode, swapType) {
 }
 
 function normalizeNodeList(node) {
+  // Is the reponse a full HTML document?
   if (node instanceof Document) {
-    // Is there a body element in the document?
-    const bodyNode = node.querySelector("body");
-    if (bodyNode) {
-      return Array.from(bodyNode.childNodes);
-    }
     // Is there an HTML element in the document?
     const htmlNode = node.querySelector("html");
     if (htmlNode) {
@@ -367,11 +377,13 @@ function normalizeNodeList(node) {
     }
     return Array.from(fragment.childNodes);
   }
-  //   return Array.from(node.childNodes);
-  // }
+
+  // Is the response a NodeList?
   if (node instanceof NodeList || Array.isArray(node)) {
     return Array.from(node);
   }
+
+  // For a single node, just return as an array
   return [node];
 }
 
