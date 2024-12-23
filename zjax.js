@@ -3,6 +3,7 @@ window.zjax = getGlobalZjaxObject();
 
 // Constants
 const httpMethods = ["GET", "POST", "PUT", "PATCH", "DELETE"];
+const responseTypes = ["outer", "inner"];
 const swapTypes = [
   "outer",
   "inner",
@@ -79,7 +80,8 @@ async function parseZSwaps(documentOrNode) {
     } catch (error) {
       console.error(
         `ZJAX ERROR – Unable to parse z-swap: ${error.message}\n`,
-        node
+        node,
+        error.stack
       );
     }
   }
@@ -125,7 +127,7 @@ function getZSwapObject(zSwapString, node) {
     } else if (node.tagName === "A") {
       zSwapObject.endpoint = node.href;
     } else {
-      throw new Error("No endpoint inerrable or specified");
+      throw new Error("No endpoint inferrable or specified");
     }
   }
   return zSwapObject;
@@ -169,22 +171,29 @@ function getMatchingNodes(documentOrNode, selector) {
   return nodesToParse;
 }
 
-function getSwaps(swapString) {
-  // Parse a  like: "foo->#bar|inner, #baz" into an array of objects
+function getSwaps(zSwapString) {
+  // Parse a  like: "foo|inner->#bar|inner, #baz" into an array of objects
   // [
-  //   { response: "foo", target: "#bar", swapStringType: "inner" },
-  //   { response: "#baz", target: "#baz", swapType: "outer" }
+  //   { response: "foo", target: "#bar", responseType: "inner", swapType: "inner" },
+  //   { response: "#baz", target: "#baz", responseType: "outer", swapType: "outer" }
   // ]
   const swaps = [];
-  swapString.split(",").forEach(function (swapPart) {
+  zSwapString.split(",").forEach(function (zSwapPart) {
+    console.log("zSwapPart", zSwapPart);
     const swap = {};
-    const responseAndTargetSwaps = swapPart.split("->");
-    const targetAndSwapType = responseAndTargetSwaps.pop();
-    const [targetNode, swapType] = targetAndSwapType.split("|");
-    const responseNode = responseAndTargetSwaps[0] || targetNode;
-    swap["response"] = responseNode;
+    const responseAndTargetSwaps = zSwapPart.split("->") || [];
+    const targetNodeAndSwapType = responseAndTargetSwaps.pop();
+    const [targetNode, swapType] = targetNodeAndSwapType.split("|");
+    const responseNodeAndResponseType = responseAndTargetSwaps[0] || "";
+    const [responseNode, responseType] =
+      responseNodeAndResponseType && responseNodeAndResponseType.split("|");
+    swap["response"] = responseNode || targetNode;
     swap["target"] = targetNode;
-    swap["swapType"] = swapType || "outer";
+    swap["responseType"] = (responseType && responseType.trim()) || "outer";
+    swap["swapType"] = (swapType && swapType.trim()) || "outer";
+    if (swap["responseType"] && !responseTypes.includes(swap["responseType"])) {
+      throw new Error(`Invalid swap type: ${swap["responseType"]}`);
+    }
     if (swap["swapType"] && !swapTypes.includes(swap["swapType"])) {
       throw new Error(`Invalid swap type: ${swap["swapType"]}`);
     }
@@ -211,10 +220,20 @@ function getZSwapFunction(zSwap, node) {
         // Swap the node using a view transition?
         if (isVTSupported && zjax.transitions) {
           document.startViewTransition(() => {
-            swapOneNode(targetNode, responseNode, swap.swapType);
+            swapOneNode(
+              targetNode,
+              responseNode,
+              swap.swapType,
+              swap.responseType
+            );
           });
         } else {
-          swapOneNode(targetNode, responseNode, swap.swapType);
+          swapOneNode(
+            targetNode,
+            responseNode,
+            swap.swapType,
+            swap.responseType
+          );
         }
       });
     } catch (error) {
@@ -285,9 +304,11 @@ function getNewAndOldNodes(responseDOM, swap) {
   return [responseNode, targetNode];
 }
 
-function swapOneNode(targetNode, responseNode, swapType) {
+function swapOneNode(targetNode, responseNode, swapType, responseType) {
   // Since a responseNode might be a single node or a whole document (which may just contain
   // a handful of nodes), let's just normalize all responseNodes to be an array.
+  responseNode =
+    responseType === "inner" ? responseNode.childNodes : responseNode;
   const responseNodes = normalizeNodeList(responseNode);
 
   // Outer

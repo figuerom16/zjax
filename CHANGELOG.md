@@ -1,3 +1,7 @@
+## 1.0.19 - 2024-12-23
+
+- - Added support for "inner" or "outer" responseType modifiers
+
 ## 1.0.18 - 2024-12-23
 
 - - Added minification and included Readme and CHANGELOG in files published to npm

@@ -140,7 +140,7 @@ The default Swap-Type is `outer` which replaces the element in its entirety. Alt
 </a>
 ```
 
-Swap type available include:
+Swap types available include:
 
 `outer` - Morph the entire element (default)  
 `inner` - Morph only inner content  
@@ -245,7 +245,7 @@ Action functions receive a `$` argument.
 
 ```js
 doSomething($) {
-  ... // Now can acccess the $ object
+  ... // Now can you acccess the $ object
 }
 ```
 
