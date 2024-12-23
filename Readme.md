@@ -110,9 +110,9 @@ Notice that in the example above, we didn't specify the trigger event because th
 
 ### Specifying the SWAP-Element
 
-The swap element is specified with CSS selector syntax like `p`, `#cart`, or `nav > a`. If only one element is specified, it will be used to identify both the incoming element and the existing element to be replaced. Specifying multiple elements to swap at once as well as specifying separate incoming and existing element selectors are also supported. The default Swap-Type used to replace the entire element can also be changed.
+The swap element is specified with CSS selector syntax like `p`, `#cart`, or `nav > a`. If only one element is specified, it will be used to identify both the response element and the target element to be replaced. Specifying multiple elements to swap at once as well as specifying separate response and target element selectors are also supported. The default swap-type used to replace the entire element can also be changed.
 
-### Swapping multiple elements
+### Swapping Multiple Elements
 
 We aren't limited to swapping just one element. Multiple elements can be swapped at the same time separated by commas. 
 
@@ -124,9 +124,9 @@ We aren't limited to swapping just one element. Multiple elements can be swapped
 
 In the example above, both the `#book-form` and `#cart-total` elements will be swapped out and replaced with matching elements found in the response. 
 
-### Swapping incoming->existing elements
+### Swapping response->target elements
 
-Sometimes the selector for the existing element isn't the same as the incoming. Use the `->` operator to specify existing and incoming elements separately.
+Sometimes the selector for the response element isn't the same as the target. Use the `->` operator to specify the response and target elements separately.
 
 ```html
 <button z-swap="/books/123 #book-form, #updated-cart->#cart">
@@ -146,7 +146,7 @@ In the above example, presumably the `/books/123` route returns a partial contai
 
 ### Specifying the Swap-Type
 
-The default swap-type is `outer` which replaces the element in its entirety. Alternatively, you may want to replace only the inner content of the element, or maybe insert the response element *after* the existing one. The swap-type can be appended to the target element using the pipe `|` character. Note that the swap-type only affects the target element.
+The default swap-type is `outer` which replaces the element in its entirety. Alternatively, you may want to replace only the inner content of the element, or maybe insert the response element *after* the target. The swap-type can be appended to the target element using the pipe `|` character. Note that the swap-type only affects the target element.
 
 ```html
 <button z-swap="/books/123 #cart-total|after">

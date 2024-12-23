@@ -1,3 +1,6 @@
+## 1.0.23 - 2024-12-23
+- More readme fixes
+
 ## 1.0.22 - 2024-12-23
 - Small typo in readme
 
