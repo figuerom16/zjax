@@ -2,6 +2,7 @@ const fs = require("fs");
 const path = require("path");
 const { execSync } = require("child_process");
 const readline = require("readline");
+const { minify } = require("terser");
 
 // Path to your changelog and package.json
 const changelogPath = path.join(__dirname, "CHANGELOG.md");
@@ -74,6 +75,17 @@ function pushCommit() {
   }
 }
 
+function minifyZjax() {
+  try {
+    execSync(`npm run minify`, { stdio: "inherit" });
+    console.log("\nMinfied zjax.js");
+    return true;
+  } catch (error) {
+    console.error("\nError minifying zjax.js: ", error.message);
+    process.exit(1);
+  }
+}
+
 function publishToNpm() {
   try {
     execSync(`npm publish`, { stdio: "inherit" });
@@ -133,6 +145,13 @@ async function main() {
   const changelog = await promptForChangelog();
   updateChangelogAndVersion(changelog);
 
+  // Minify zjax.js?
+  if (await confirm("\nMinify zjax.js?", "y")) {
+    minifyZjax();
+  } else {
+    console.log("\nNot minifying zjax.js");
+  }
+
   // Commit and push the changes to Git
   if (await confirm("\nCommit changes to Git?", "y")) {
     // Commit
@@ -147,6 +166,7 @@ async function main() {
     console.log("\nChanges were not committed");
   }
 
+  // Publish to NPM
   if (await confirm("\nPublish to npm?", "y")) {
     publishToNpm();
   } else {

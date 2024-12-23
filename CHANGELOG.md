@@ -1,3 +1,7 @@
+## 1.0.18 - 2024-12-23
+
+- - Added minification and included Readme and CHANGELOG in files published to npm
+
 ## 1.0.17 - 2024-12-22
 
 - - Updated SemVer to also publish to NPM for me
