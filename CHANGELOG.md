@@ -1,3 +1,6 @@
+## 1.0.22 - 2024-12-23
+- Small typo in readme
+
 ## 1.0.21 - 2024-12-23
 - Added support for @load trigger
 - Added docs for @load trigger

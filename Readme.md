@@ -82,7 +82,7 @@ Note that `@submit` can be used only on a `form` element.
 
 **The special `@load` trigger**
 
-This will event will fire when the element is loaded into the DOM. This works for initial page load as well as when elements are loaded into the DOM via a z-swap. Be careful not to create an infinite loop by swapping an element which has a `@load` trigger into itself.
+This event will fire when the element is loaded into the DOM. This works for initial page load as well as when elements are loaded into the DOM via a z-swap. Be careful not to create an infinite loop by swapping an element which has a `@load` trigger into itself.
 
 ### Specifying the Endpoint
 
