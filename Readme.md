@@ -1,6 +1,6 @@
 # ZJAX
 
-ZJAX is a lightweight yet powerful JavaScript library (just 2.5KB gzipped) that brings modern SPA-like interactivity to your web pages with minimal effort. By simply adding intuitive "z-tag" attributes like `z-swap` and `z-action` to your HTML elements, ZJAX lets you dynamically update parts of a web page or bind client-side JavaScript actions directly to the DOM—all without writing verbose JavaScript code.
+ZJAX is a lightweight yet powerful JavaScript library (just 3KB gzipped) that brings modern SPA-like interactivity to your web pages with minimal effort. By simply adding intuitive "z-tag" attributes like `z-swap` and `z-action` to your HTML elements, ZJAX lets you dynamically update parts of a web page or bind client-side JavaScript actions directly to the DOM—all without writing verbose JavaScript code.
 
 Inspired by HTMX, Hotwire, and Unpoly and compatible with *any* SSR backend like Rails, Laravel, Django, Astro – or even Wordpress, ZJAX seamlessly integrates into your workflow. 
 
@@ -43,7 +43,7 @@ You can try this right now with a plain HTML file.
 
 Adding the `z-swap` attribute hijacks this link so that its default behavior is replaced with an AJAX request. The specified `p` is then plucked from response HTML and replaces our local `p` tag *without* affecting any other parts of the page. 
 
-In this example, we specified only the element to be swapped and other specifiers are inferred from context. By default, for an `a` tag, `z-swap` will listen for a `click` event as its Trigger, the HTTP Method will be `GET`, and the Endpoint URL is inferred from `href` value. But these can also be defined explicitly. For the example above, this is the same:
+In this example, we specified only the element to be swapped and other specifiers are inferred from context. By default, for an `a` tag, `z-swap` will listen for a `click` event as its trigger, the HTTP method will be `GET`, and the endpoint URL is inferred from `href` value. But these can also be defined explicitly. For the example above, this is the same:
 ```html
 <a href="" z-swap="@click GET https://httpbin.org/html p">
 ```
@@ -56,11 +56,11 @@ If a `*` is used by itself as the response swap element specifier, ZJAX will use
 
 For completeness, `*` can also be used for the target element specifier although it probably isn't all that useful since this effectively just replaces the body element contents.
 
-Note that Response Types and Swap Types can not be combined with `*` since this would be somewhere between ambiguous and nonsensical. So something like `*|inner` will throw an error.
+Note that response-types and swap-types can not be combined with `*` since this is somewhat nonsensical. So something like `*|inner` will throw an error.
 
 > ## Format of `z-swap` value
 >
->  `z-swap="[@Trigger>] [HTTP-Method] [Endpoint] [Swap-Elements]"`
+>  `z-swap="[@trigger>] [HTTP-method] [endpoint] [swap-elements]"`
 >
 > All specifiers are optional as long as they can be inferred from context. Each specifier is separated by a space. The order shown above is the recommended convention for readability. Remember that the Trigger must always be prefixed with "@" and that a valid endpoint must always start with "http://", "https://", "/", "./", or can it can be a single dot, ".".
 
@@ -78,6 +78,12 @@ Try prepending `@mouseover` to the `z-swap` value.
 
 Any standard DOM event as well as some special ones added by ZJAX and any custom events you have defined globally can be specified prefixed with an @-sign like `@submit`, `@blur`, `@input`, `@dblclick`, `@my-custom-event`, etc.
 
+Note that `@submit` can be used only on a `form` element.
+
+**The special `@load` trigger**
+
+This will event will fire when the element is loaded into the DOM. This works for initial page load as well as when elements are loaded into the DOM via a z-swap. Be careful not to create an infinite loop by swapping an element which has a `@load` trigger into itself.
+
 ### Specifying the Endpoint
 
 The example above infers the endpoint from the `a`-tag's `href` value. But for a `button`, there is no `href` attribute – so you'll want to specify that too as part of the `z-swap` value.
@@ -88,7 +94,7 @@ The example above infers the endpoint from the `a`-tag's `href` value. But for a
 </button>
 ```
 
-The Endpoint specifier can be any valid URL including local absolute or relative paths as long as it starts with "http://" or "https://", or starts with "/", or "./", or is a single dot ".". Note that the Endpoint *must* start with one those options or it will not be recognized as a Endpoint.
+The endpoint specifier can be any valid URL including local absolute or relative paths as long as it starts with "http://" or "https://", or starts with "/", or "./", or is a single dot ".". Note that the endpoint *must* start with one those options or it will not be recognized as a endpoint.
 
 ### Specifying the HTTP-Method
 
@@ -100,7 +106,7 @@ The example above will use the GET method which is the default when using `z-swa
 </a>
 ```
 
-Notice that in the example above, we didn't specify the Trigger event because the default `click` works great for our button in this case. Here, the HTTP method and a local URL are specified along with the element to be swapped.
+Notice that in the example above, we didn't specify the trigger event because the default `click` works great for our button in this case. Here, the HTTP method and a local URL are specified along with the element to be swapped.
 
 ### Specifying the SWAP-Element
 
@@ -140,7 +146,7 @@ In the above example, presumably the `/books/123` route returns a partial contai
 
 ### Specifying the Swap-Type
 
-The default Swap-Type is `outer` which replaces the element in its entirety. Alternatively, you may want to replace only the inner content of the element, or maybe insert the response element *after* the existing one. The Swap-Type can be appended to the target element using the pipe `|` character. Note that the Swap-Type only affects the target element.
+The default swap-type is `outer` which replaces the element in its entirety. Alternatively, you may want to replace only the inner content of the element, or maybe insert the response element *after* the existing one. The swap-type can be appended to the target element using the pipe `|` character. Note that the swap-type only affects the target element.
 
 ```html
 <button z-swap="/books/123 #cart-total|after">
@@ -161,7 +167,7 @@ Swap types available include:
 
 ### Specifying the Response-Type
 
-The default Response-Type is `outer` which means that the element found in the response will be used in its entirety. To use only the content found *within* the response element, you can specify the `inner` response type like this:
+The default response-type is `outer` which means that the element found in the response will be used in its entirety. To use only the content found *within* the response element, you can specify the `inner` response type like this:
 
 ```html
 <button z-swap="/books/123 #books-table|inner->#books-rows|inner">
@@ -171,7 +177,7 @@ The default Response-Type is `outer` which means that the element found in the r
 
 In this example, only the inner contents of the response element will be used to replace only the inner contents of the target element.
 
-Response types available include:
+Response-Types available include:
 
 `outer` - Use the entire response element (default)  
 `inner` - Use only inner content  of the response element

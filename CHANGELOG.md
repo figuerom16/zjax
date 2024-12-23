@@ -1,5 +1,9 @@
+## 1.0.21 - 2024-12-23
+- Added support for @load trigger
+- Added docs for @load trigger
+
 ## 1.0.20 - 2024-12-23
-- Updated Readme to cover inner/outer response types and "*" special swap element specifier
+- Updated Readme to cover inner/outer response types and `*` special swap element specifier
 
 ## 1.0.19 - 2024-12-23
 - Added support for "inner" or "outer" responseType modifiers

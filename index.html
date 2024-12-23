@@ -12,12 +12,19 @@
   
   <body>
     <h1>This is ZJAX</h1>
-    <p>This will not be replaced by ZJAX. </p>
+    <!-- <p>This will not be replaced by ZJAX. </p> -->
     <p class="doobie">This will be replaced by ZJAX.</p>
-    <a id="moby" href="https://httpbin.org/html" z-swap="*->h1|inner, button|delete">Fetch Moby Dick</a>
-    <div id="appendable">
+    <!-- <a id="moby" href="https://httpbin.org/html" z-swap="@load h1->h1|inner, button|delete">Fetch Moby Dick</a> -->
+    <button z-swap="@click ./other.html *">Append the h1</button>
+    <!-- <a id="moby" href="https://httpbin.org/html" z-swap="@load h1->h1|inner">Fetch Moby Dick</a> -->
+    <!-- <div id="appendable">
       <button z-swap="@click . h1->*">Append the h1</button>
     </div>
     <button z-swap="./other.html h2|inner->body|inner">Get Other</button>
+
+    <form action="." z-swap="p">
+      <input type="text" name="name">
+      <button type="submit">Submit</button>
+    </form> -->
   </body>
 </html>

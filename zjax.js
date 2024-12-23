@@ -63,14 +63,20 @@ async function parseZSwaps(documentOrNode) {
       documentOrNode
     )}`
   );
+
   for (const node of zSwapNodes) {
     try {
+      // Get the z-swap attribute and parse value into zSwapObject
       zSwapString = node.getAttribute("z-swap");
       const zSwapObject = getZSwapObject(zSwapString, node);
       // Add the swap function listener to the node
       const zSwapFunction = getZSwapFunction(zSwapObject, node);
       attachEventListener(zSwapObject.trigger, zSwapFunction, node);
+      // Add a mutation observer to remove the event listener when the node is removed
       attachMutationObserver(zSwapObject.trigger, zSwapFunction, node);
+      if (zSwapObject.trigger === "load") {
+        node.dispatchEvent(new Event("load"));
+      }
       zjax.debug &&
         debug(
           `Added z-swap for '${zSwapObject.trigger}' events to ${prettyNodeName(
@@ -111,6 +117,10 @@ function getZSwapObject(zSwapString, node) {
     }
   }
 
+  // Special case: @submit trigger is only available on <FORM> elements
+  if (zSwapObject.trigger === "@submit" && node.tagName !== "FORM") {
+    throw new Error("@submit trigger is only available on <FORM> elements");
+  }
   // Add the array of swaps
   zSwapObject.swaps = getSwaps(leftoverParts.join(" "));
 
@@ -221,10 +231,17 @@ function getZSwapFunction(zSwap, node) {
       // Swap nodes
       zSwap.swaps.forEach(function (swap) {
         // Get the source and target nodes
-        const [responseNode, targetNode] = getNewAndOldNodes(responseDOM, swap);
-        // Before swapping in a source node, parse it for z-swaps
+        const [responseNode, targetNode] = getResponseAndTargetNodes(
+          responseDOM,
+          swap
+        );
+        // Before swapping in a response node, parse it for z-swaps
         debug(`Parsing incoming response for z-swaps`);
-        parseZSwaps(responseNode);
+        if (responseNode) {
+          // Tricky! You might have a z-swap="#not-in-response|delete"
+          // so then there's nothing to parse in the response.
+          parseZSwaps(responseNode);
+        }
         // Swap the node using a view transition?
         if (isVTSupported && zjax.transitions) {
           document.startViewTransition(() => {
@@ -277,7 +294,7 @@ async function getResponseDOM(method, endpoint) {
   return responseDOM;
 }
 
-function getNewAndOldNodes(responseDOM, swap) {
+function getResponseAndTargetNodes(responseDOM, swap) {
   let targetNode;
   let responseNode;
 
