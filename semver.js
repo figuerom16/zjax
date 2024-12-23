@@ -17,7 +17,7 @@ function incrementVersion(version) {
 
 function prependToChangelog(version, changelog) {
   const currentDate = new Date().toISOString().split("T")[0]; // Get current date in YYYY-MM-DD format
-  const changelogEntry = `## ${version} - ${currentDate}\n\n- ${changelog}\n\n`;
+  const changelogEntry = `## ${version} - ${currentDate}\n${changelog}\n\n`;
 
   // Read existing changelog
   const changelogContent = fs.existsSync(changelogPath)

@@ -179,7 +179,6 @@ function getSwaps(zSwapString) {
   // ]
   const swaps = [];
   zSwapString.split(",").forEach(function (zSwapPart) {
-    console.log("zSwapPart", zSwapPart);
     const swap = {};
     const responseAndTargetSwaps = zSwapPart.split("->") || [];
     const targetNodeAndSwapType = responseAndTargetSwaps.pop();
@@ -191,11 +190,20 @@ function getSwaps(zSwapString) {
     swap["target"] = targetNode;
     swap["responseType"] = (responseType && responseType.trim()) || "outer";
     swap["swapType"] = (swapType && swapType.trim()) || "outer";
+    // Only allow valid Response Types
     if (swap["responseType"] && !responseTypes.includes(swap["responseType"])) {
       throw new Error(`Invalid swap type: ${swap["responseType"]}`);
     }
+    // Only allow valid Swap Types
     if (swap["swapType"] && !swapTypes.includes(swap["swapType"])) {
       throw new Error(`Invalid swap type: ${swap["swapType"]}`);
+    }
+    // Special case: Disallow wild cards with swap/response types
+    if (swap["response"] === "*" && swap["responseType"] !== "outer") {
+      throw new Error('Wild card "*" can notbe piped to a Response Type');
+    }
+    if (swap["target"] === "*" && swap["swapType"] !== "outer") {
+      throw new Error('Wild card "*" can not be piped to a Swap Type');
     }
     swaps.push(swap);
   });

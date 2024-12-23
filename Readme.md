@@ -41,7 +41,7 @@ You can try this right now with a plain HTML file.
 </html>
 ```
 
-Adding `z-swap` hijacks this link so that its default behavior is replaced with an AJAX request. The specified `p` is then plucked from response HTML and replaces our local `p` tag *without* affecting any other parts of the page. 
+Adding the `z-swap` attribute hijacks this link so that its default behavior is replaced with an AJAX request. The specified `p` is then plucked from response HTML and replaces our local `p` tag *without* affecting any other parts of the page. 
 
 In this example, we specified only the element to be swapped and other specifiers are inferred from context. By default, for an `a` tag, `z-swap` will listen for a `click` event as its Trigger, the HTTP Method will be `GET`, and the Endpoint URL is inferred from `href` value. But these can also be defined explicitly. For the example above, this is the same:
 ```html
@@ -50,9 +50,17 @@ In this example, we specified only the element to be swapped and other specifier
 
 We've omitted the `href` value for brevity and because it will be ignored anyway since the explicitly specified endpoint URL takes precedence.
 
+### The wildcard `*` element
+
+If a `*` is used by itself as the response swap element specifier, ZJAX will use entire response. This is most useful when the response is known to be a partial containing only the element or elements needed for the swap. 
+
+For completeness, `*` can also be used for the target element specifier although it probably isn't all that useful since this effectively just replaces the body element contents.
+
+Note that Response Types and Swap Types can not be combined with `*` since this would be somewhere between ambiguous and nonsensical. So something like `*|inner` will throw an error.
+
 > ## Format of `z-swap` value
 >
->  `z-swap="[@Trigger>] [HTTP-Method] [Endpoint] [Swap-Element]"`
+>  `z-swap="[@Trigger>] [HTTP-Method] [Endpoint] [Swap-Elements]"`
 >
 > All specifiers are optional as long as they can be inferred from context. Each specifier is separated by a space. The order shown above is the recommended convention for readability. Remember that the Trigger must always be prefixed with "@" and that a valid endpoint must always start with "http://", "https://", "/", "./", or can it can be a single dot, ".".
 
@@ -150,9 +158,26 @@ Swap types available include:
 `append` - Insert after all other inner content  
 `delete` - Ignore returned value and delete this element  
 `none` - Do nothing (typically used with dynamic values)  
+
+### Specifying the Response-Type
+
+The default Response-Type is `outer` which means that the element found in the response will be used in its entirety. To use only the content found *within* the response element, you can specify the `inner` response type like this:
+
+```html
+<button z-swap="/books/123 #books-table|inner->#books-rows|inner">
+  Click me
+</a>
+```
+
+In this example, only the inner contents of the response element will be used to replace only the inner contents of the target element.
+
+Response types available include:
+
+`outer` - Use the entire response element (default)  
+`inner` - Use only inner content  of the response element
+
   
-  
-  
+
 # `z-action` 
 
 ***This is not yet implemented*** 
@@ -270,17 +295,17 @@ ZJAX make this very simple.
 2. Return `true` from the ZJAX Action function to trigger the `z-swap`.
 
 Note that this works for synchronous and asynchronous functions alike.
-  
-  
+
+
 # `z-confirm`
 
 ***This is not yet implemented*** 
-  
+
 
 # `z-active`
 
 ***This is not yet implemented*** 
-  
+
 
 # `z-validate`
 
