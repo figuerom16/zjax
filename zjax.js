@@ -15,6 +15,14 @@ const swapTypes = [
   "delete",
 ];
 const isVTSupported = document.startViewTransition !== undefined;
+const attrsToNotFreeze = [
+  "id",
+  "z-swap",
+  "z-action",
+  "z-confirm",
+  "z-active",
+  "z-validate",
+];
 // Parse the DOM on load.
 addEventListener("DOMContentLoaded", function () {
   debug("Parsing DOM");
@@ -330,10 +338,26 @@ function getResponseAndTargetNodes(responseDOM, swap) {
 }
 
 function swapOneNode(targetNode, responseNode, swapType, responseType) {
-  // Since a responseNode might be a single node or a whole document (which may just contain
-  // a handful of nodes), let's just normalize all responseNodes to be an array.
+  // If responseType is "inner", get the childNodes
   responseNode =
     responseType === "inner" ? responseNode.childNodes : responseNode;
+  // For class settling (in order to trigger css transitions), change attributes of
+  // any node with an id matching both target and response to start with attributes
+  // of the targetNode, then swap them later.
+
+  // [
+  //   {
+  //     id: "foo",
+  //     targetAttrs: [ class="bar", href="baz" ]
+  //     responseAttrs: [ class="baz something-new", href="baz" ]
+  //   }
+  // ]
+
+  const attrsForIds = getAttrsForIds(targetNode, responseNode); // TODO
+  console.log("attrsForIds", attrsForIds);
+
+  // Since a responseNode might be a single node or a whole document (which may just contain
+  // a handful of nodes), let's just normalize all responseNodes to be an array.
   const responseNodes = normalizeNodeList(responseNode);
 
   // Outer
@@ -409,6 +433,44 @@ function swapOneNode(targetNode, responseNode, swapType, responseType) {
   if (swapType === "none") {
     return;
   }
+}
+
+function getAttrsForIds(targetNode, responseNode) {
+  const attrsForIds = [];
+
+  if (targetNode.id) {
+    // Check top level node itself.
+    if (targetNode.id === responseNode.id) {
+      attrsForIds.push({
+        id: targetNode.id,
+        targetAttrs: getAttributes(targetNode),
+        responseAttrs: getAttributes(responseNode),
+      });
+    }
+
+    // Now loop through all other inner nodes with an id
+    for (const nodeWithId of targetNode.querySelectorAll("[id]")) {
+      const matchingIdInResponse = responseNode.getElementById(nodeWithId.id);
+      if (matchingIdInResponse) {
+        attrsForIds.push({
+          id: nodeWithId.id,
+          targetAttrs: getAttributes(nodeWithId),
+          responseAttrs: getAttributes(matchingIdInResponse),
+        });
+      }
+    }
+  }
+  return attrsForIds;
+}
+
+function getAttributes(node) {
+  const attributes = [];
+  for (const attribute of Array.from(node.attributes).filter(
+    (attr) => !attrsToNotFreeze.includes(attr.name)
+  )) {
+    attributes.push([attribute.name, attribute.value]);
+  }
+  return attributes;
 }
 
 function normalizeNodeList(node) {

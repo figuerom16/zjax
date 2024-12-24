@@ -210,9 +210,9 @@ In order for this action to work, we need to define it somewhere in our project 
 </script>
 ```
 
-### The `zjax` global object
-
-When ZJAX is loaded, it creates the `window.zjax` object so that the `zjax` object available everywhere in your app. This means you can organize your files however you like. You can stick in a script tag in your document head, add a separate file like "zjax-actions.js" (or whatever), or if your application is complex enough, maybe a directory called "zjax-actions/" with separate files for different sections of your application.
+> ### The `zjax` global object
+>
+> When ZJAX is loaded, it creates the `window.zjax` object so that the `zjax` object available everywhere in your app. This means you can organize your files however you like. You can stick a script tag in your document head, add a separate file like "zjax-actions.js" (or whatever), or if your application is complex enough, maybe make a directory called "zjax-actions/" with separate files for different sections of your application.
 
 ### Defining Actions
 
@@ -266,7 +266,7 @@ Manually adding event listeners from a JS script somewhere else in your project 
 
 Instead, we can use a `z-action` tag to not only set up the listener and associate it with a function, but also to remove it automatically when the element is removed from the DOM.
 
-> ### *GOTCHA!*
+> ### *Heads up!*
 >
 > Watch out for this quirk of HTTP. When a `<script>` tag is added to the DOM for example by a `z-action`, it will be *ignored* by the browser. This means that you can't declare ZJAX Actions within a partial for example. Of course you can use `z-action` attributes in your partials and these will be parsed just fine. But the actual `zjax.action()` function used to *define* the action cannot be within a `<script>` tag contained in a swap response.
 
@@ -282,8 +282,9 @@ doSomething($) {
 
 This object is called the Action Helper and it provides a few handy properties and methods. 
 
-- `$(<selector)` is a shortcut for `Document.querySelector(<selector>)`.
+- `$(<selector>)` is a shortcut for `document.querySelector(<selector>)`.
 - `$()` returns the element which triggered this action when no selector is provided.
+- `$.event` returns the `event` object which triggered this action.
 - `$.swap` performs the same action as a `z-swap` tag and receives the same specifiers except the trigger specifier which is ommited.
 - `$.render(<dom>, <selector>[|<swap-type>])` renders DOM elements to the target selector using an optional Swap-Type.
 - `await $.get(<url>)` is a shortcut for asynchronously fetching a document with the GET method and returning the response as a parsed DOM object.
