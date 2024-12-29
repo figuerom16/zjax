@@ -3,10 +3,12 @@
     <link rel="stylesheet" href="https://unpkg.com/tiny.css@0">
 		<!-- <script src="https://unpkg.com/zjax"></script> -->
 		<!-- <script src="dist/zjax.min.js"></script> -->
-		<script src="zjax.js"></script>
+		<script type="module" defer src="src/index.js"></script>
     <script>
-      zjax.debug = true;
-      zjax.transitions = true;
+      document.addEventListener("DOMContentLoaded", () => {
+        zjax.debug = true;
+        zjax.transitions = false;
+      });
     </script>
   </head>
   
@@ -14,7 +16,7 @@
     <h1>This is ZJAX</h1>
     <!-- <p>This will not be replaced by ZJAX. </p> -->
     <p class="doobie">This will be replaced by ZJAX.</p>
-    <!-- <a id="moby" href="https://httpbin.org/html" z-swap="@load h1->h1|inner, button|delete">Fetch Moby Dick</a> -->
+    <a id="moby" href="https://httpbin.org/html" z-swap="@load h1">Fetch Moby Dick</a>
     <button id="moby" z-swap="@click ./other.html button">Button from INDEX</button>
     <!-- <a id="moby" href="https://httpbin.org/html" z-swap="@load h1->h1|inner">Fetch Moby Dick</a> -->
     <!-- <div id="appendable">
