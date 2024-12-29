@@ -1,10 +1,10 @@
 {
   "name": "zjax",
-  "version": "1.0.23",
+  "version": "1.0.24",
   "description": "ZJAX is a lightweight yet powerful JavaScript library that brings modern SPA-like interactivity to your web pages with minimal effort",
   "main": "dist/zjax.min.js",
   "scripts": {
-    "build": "esbuild zjax.js --bundle --minify --outfile=dist/zjax.min.js",
+    "build": "esbuild src/index.js --bundle --minify --outfile=dist/zjax.min.js",
     "size": "gzip -c dist/zjax.min.js | wc -c | awk '{print \"Gzipped and minified size: \" $1 / 1024 \" KB\"}'",
     "semver": "node script/semver.js"
   },

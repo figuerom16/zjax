@@ -4,8 +4,8 @@ const { execSync } = require("child_process");
 const readline = require("readline");
 
 // Path to your changelog and package.json
-const changelogPath = path.join(__dirname, "CHANGELOG.md");
-const packageJsonPath = path.join(__dirname, "package.json");
+const changelogPath = path.join(__dirname, "..", "CHANGELOG.md");
+const packageJsonPath = path.join(__dirname, "..", "package.json");
 
 function incrementVersion(version) {
   const parts = version.split(".");

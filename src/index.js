@@ -1,4 +1,4 @@
-import * as zswap from "./zswap.js";
+import * as zswaps from "./zswaps.js";
 import { zjax } from "./zjax.js";
 import { debug } from "./debug.js";
 
@@ -8,5 +8,5 @@ window.zjax = zjax;
 // Parse the DOM on load.
 addEventListener("DOMContentLoaded", function () {
   debug("Parsing DOM");
-  zswap.parseZSwaps(document);
+  zswaps.parseZSwaps(document);
 });

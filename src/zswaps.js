@@ -39,7 +39,7 @@ export async function parseZSwaps(documentOrNode) {
   }
 }
 
-export function getZSwapObject(zSwapString, node) {
+function getZSwapObject(zSwapString, node) {
   const valueString = collapseCommas(zSwapString);
   // Split on whitespace
   const valueParts = valueString.split(/\s/);
@@ -87,7 +87,7 @@ export function getZSwapObject(zSwapString, node) {
   return zSwapObject;
 }
 
-export function getTriggerMethodOrEndpointPair(swapSpecifier) {
+function getTriggerMethodOrEndpointPair(swapSpecifier) {
   // Is this a Trigger?
   if (swapSpecifier.startsWith("@")) {
     return ["trigger", swapSpecifier.substr(1)];
@@ -104,7 +104,7 @@ export function getTriggerMethodOrEndpointPair(swapSpecifier) {
   }
 }
 
-export function prettyNodeName(documentOrNode) {
+function prettyNodeName(documentOrNode) {
   return documentOrNode instanceof Document
     ? "#document"
     : "<" +
@@ -113,7 +113,7 @@ export function prettyNodeName(documentOrNode) {
         ">";
 }
 
-export function getMatchingNodes(documentOrNode, selector) {
+function getMatchingNodes(documentOrNode, selector) {
   // Find all decendent nodes with a z-swap attribute
   const nodesToParse = [];
   nodesToParse.push(...documentOrNode.querySelectorAll(selector));
@@ -125,7 +125,7 @@ export function getMatchingNodes(documentOrNode, selector) {
   return nodesToParse;
 }
 
-export function getSwaps(zSwapString) {
+function getSwaps(zSwapString) {
   // Parse a  like: "foo|inner->#bar|inner, #baz" into an array of objects
   // [
   //   { response: "foo", target: "#bar", responseType: "inner", swapType: "inner" },
@@ -167,7 +167,7 @@ export function getSwaps(zSwapString) {
   return swaps;
 }
 
-export function getZSwapFunction(zSwap, node) {
+function getZSwapFunction(zSwap, node) {
   return async function (event) {
     event.preventDefault();
     event.stopPropagation();
@@ -218,7 +218,7 @@ export function getZSwapFunction(zSwap, node) {
   };
 }
 
-export async function getResponseDOM(method, endpoint) {
+async function getResponseDOM(method, endpoint) {
   // Get formData?
   // const body = ?? # TODO
   const response = await fetch(endpoint, {
@@ -241,7 +241,7 @@ export async function getResponseDOM(method, endpoint) {
   return responseDOM;
 }
 
-export function getResponseAndTargetNodes(responseDOM, swap) {
+function getResponseAndTargetNodes(responseDOM, swap) {
   let targetNode;
   let responseNode;
 
@@ -276,29 +276,48 @@ export function getResponseAndTargetNodes(responseDOM, swap) {
   return [responseNode, targetNode];
 }
 
-export function swapOneNode(targetNode, responseNode, swapType, responseType) {
-  console.log("got here");
+function getMutatedResponseNodeAndAttributesToUpdateMap(
+  targetNode,
+  responseNode
+) {
+  // Return the mutated responseNode and an attributesToUpdate object for later use.
+  // The mutated responseNode retains most attributes from the targetNode for any
+  // nodes with an id matching both target and response.
+  const attributesToUpdateMap = {};
 
+  // First, check the parent node for an id present in both the target and
+  // response.
+  const targetNodesWithIds = querySelectorAllIncludingParent(
+    targetNode,
+    `[id]`
+  );
+
+  for (const targetNodeWithId of targetNodesWithIds) {
+    const responseNodeWithMatchingId = querySelectorIncludingParent(
+      responseNode,
+      `[id="${targetNodeWithId.id}"]`
+    );
+    if (responseNodeWithMatchingId) {
+      const attributesToRetain = getAttributes(targetNodeWithId);
+      const attributesToUpdate = getAttributes(responseNode);
+      removeAttributes(responseNode);
+      setAttributes(responseNode, attributesToRetain);
+      attributesToUpdateMap[targetNodeWithId.id] = attributesToUpdate;
+    }
+  }
+
+  return [responseNode, attributesToUpdateMap];
+}
+
+function swapOneNode(targetNode, responseNode, swapType, responseType) {
   // If responseType is "inner", get the childNodes
   responseNode =
     responseType === "inner" ? responseNode.childNodes : responseNode;
-  // // For class settling (in order to trigger css transitions), change attributes of
-  // // any node with an id matching both target and response to start with attributes
-  // // of the targetNode, then swap them later.
-  // const attrsForIds = getAttrsForIds(targetNode, responseNode);
 
-  // // First, overwrite attributes for the responseNode with attributes from the targetNode
-  // // for everything except id and z-<attributes>.
-
-  // NEW APPROACH
-  const { interimResponseNode, attributesMap } = processAttributes(
-    targetNode,
-    responsNode
-  );
-
-  // TODO
-  console.log("responseNode", responseNode);
-  // console.log("attrsForIds", attrsForIds);
+  // Get the mutated responseNode and attributesToUpdateMap for later use.
+  let attributesToUpdateMap;
+  [responseNode, attributesToUpdateMap] =
+    getMutatedResponseNodeAndAttributesToUpdateMap(targetNode, responseNode);
 
   // Since a responseNode might be a single node or a whole document (which may just contain
   // a handful of nodes), let's just normalize all responseNodes to be an array.
@@ -311,6 +330,7 @@ export function swapOneNode(targetNode, responseNode, swapType, responseType) {
       targetNodeParent.insertBefore(item, targetNode);
     });
     targetNodeParent.removeChild(targetNode);
+    updateAttributes(responseNode, attributesToUpdateMap);
     return;
   }
 
@@ -320,6 +340,7 @@ export function swapOneNode(targetNode, responseNode, swapType, responseType) {
     responseNodes.forEach((item) => {
       targetNode.appendChild(item);
     });
+    updateAttributes(responseNode, attributesToUpdateMap);
     return;
   }
 
@@ -328,6 +349,7 @@ export function swapOneNode(targetNode, responseNode, swapType, responseType) {
     responseNodes.forEach((item) => {
       targetNode.parentNode.insertBefore(item, targetNode);
     });
+    updateAttributes(responseNode, attributesToUpdateMap);
     return;
   }
 
@@ -343,6 +365,7 @@ export function swapOneNode(targetNode, responseNode, swapType, responseType) {
       }
       referenceNodeToAppendTo = item;
     });
+    updateAttributes(responseNode, attributesToUpdateMap);
     return;
   }
 
@@ -356,6 +379,7 @@ export function swapOneNode(targetNode, responseNode, swapType, responseType) {
         targetNode.appendChild(item);
       }
     });
+    updateAttributes(responseNode, attributesToUpdateMap);
     return;
   }
 
@@ -364,6 +388,7 @@ export function swapOneNode(targetNode, responseNode, swapType, responseType) {
     responseNodes.forEach((item) => {
       targetNode.appendChild(item);
     });
+    updateAttributes(responseNode, attributesToUpdateMap);
     return;
   }
 
@@ -379,54 +404,67 @@ export function swapOneNode(targetNode, responseNode, swapType, responseType) {
   }
 }
 
-export function getAttrsForIds(targetNode, responseNode) {
-  // Example:
-  // [
-  //   {
-  //     id: "foo",
-  //     targetAttrs: [ class="bar", href="baz" ]
-  //     responseAttrs: [ class="baz something-new", href="baz" ]
-  //   }
-  // ]
-
-  const attrsForIds = [];
-
-  if (targetNode.id) {
-    // Check top level node itself.
-    if (targetNode.id === responseNode.id) {
-      attrsForIds.push({
-        id: targetNode.id,
-        targetAttrs: getAttributes(targetNode),
-        responseAttrs: getAttributes(responseNode),
-      });
-    }
-
-    // Now loop through all other inner nodes with an id
-    for (const nodeWithId of targetNode.querySelectorAll("[id]")) {
-      const matchingIdInResponse = responseNode.getElementById(nodeWithId.id);
-      if (matchingIdInResponse) {
-        attrsForIds.push({
-          id: nodeWithId.id,
-          targetAttrs: getAttributes(nodeWithId),
-          responseAttrs: getAttributes(matchingIdInResponse),
-        });
-      }
-    }
+function querySelectorIncludingParent(node, selector) {
+  if (node.matches(selector)) {
+    return node;
   }
-  return attrsForIds;
+
+  return node.querySelector(selector);
 }
 
-export function getAttributes(node) {
+function querySelectorAllIncludingParent(node, selector) {
+  const matches = [];
+
+  if (node.matches(selector)) {
+    matches.push(node);
+  }
+
+  matches.push(...node.querySelectorAll(selector));
+  return matches;
+}
+
+function getAttributes(node) {
   const attributes = [];
   for (const attribute of Array.from(node.attributes).filter(
-    (attr) => !attrsToNotFreeze.includes(attr.name)
+    (attr) => !constants.attrsToNotFreeze.includes(attr.name)
   )) {
     attributes.push([attribute.name, attribute.value]);
   }
   return attributes;
 }
 
-export function normalizeNodeList(node) {
+function setAttributes(node, attributes) {
+  for (const [name, value] of attributes) {
+    node.setAttribute(name, value);
+  }
+}
+
+function removeAttributes(node) {
+  // Iterate through all attributes of the node
+  Array.from(node.attributes).forEach((attr) => {
+    // If the attribute is not in the allowed list, remove it
+    if (!constants.attrsToNotFreeze.includes(attr.name)) {
+      node.removeAttribute(attr.name);
+    }
+  });
+}
+
+function updateAttributes(outerNode, attributesToUpdateMap) {
+  setTimeout(() => {
+    for (const [id, attributes] of Object.entries(attributesToUpdateMap)) {
+      const nodeWithId = querySelectorIncludingParent(
+        outerNode,
+        `[id="${id}"]`
+      );
+      if (nodeWithId) {
+        removeAttributes(nodeWithId);
+        setAttributes(nodeWithId, attributes);
+      }
+    }
+  }, 20);
+}
+
+function normalizeNodeList(node) {
   // Is the reponse a full HTML document?
   if (node instanceof Document) {
     // Is there an HTML element in the document?
@@ -451,11 +489,11 @@ export function normalizeNodeList(node) {
   return [node];
 }
 
-export function attachEventListener(trigger, handler, node) {
+function attachEventListener(trigger, handler, node) {
   node.addEventListener(trigger, handler);
 }
 
-export function attachMutationObserver(trigger, handler, node) {
+function attachMutationObserver(trigger, handler, node) {
   // Create a MutationObserver to watch for node removal
   // When the node is removed, remove the event listener
   const observer = new MutationObserver((mutationsList) => {
@@ -481,7 +519,7 @@ export function attachMutationObserver(trigger, handler, node) {
   observer.observe(document.body, { childList: true, subtree: true });
 }
 
-export function collapseCommas(str) {
+function collapseCommas(str) {
   // If commas have spaces next to them, remove those spaces.
   return str.replace(/\s*,\s*/g, ",");
 }

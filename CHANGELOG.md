@@ -1,3 +1,7 @@
+## 1.0.24 - 2024-12-29
+- HTMX style attribute updates to trigger CSS transitions
+- Refactored with src modules (ESM)
+
 ## 1.0.23 - 2024-12-23
 - More readme fixes
 
