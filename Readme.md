@@ -1,12 +1,12 @@
 # ZJAX
 
-ZJAX is a lightweight yet powerful JavaScript library (4.6K gzipped) that brings modern SPA-like interactivity to your web pages with minimal effort. By simply adding intuitive "z-tag" attributes like `z-swap` and `z-action` to your HTML elements, ZJAX lets you dynamically update parts of a web page or bind client-side JavaScript actions directly to the DOM — all without writing verbose JavaScript code.
+ZJAX is a lightweight yet powerful JavaScript library (4.6K gzipped) that brings modern SPA-like interactivity to your web pages with minimal effort. By simply adding intuitive "z-attributes" like `z-swap` and `z-action` to your HTML elements, ZJAX lets you dynamically update parts of a web page or bind client-side JavaScript actions directly to the DOM — all without writing verbose JavaScript code.
 
 Inspired by HTMX, Hotwire, and Unpoly and compatible with *any* SSR backend like Rails, Laravel, Django, Astro – or even Wordpress, ZJAX seamlessly integrates into your workflow. 
 
 ## Why not just use HTMX or Hotwire?
 
-HTMX and friends broke new ground implementing the idea of ***declarative AJAX*** to be *sprinkled into* the DOM as an alternative to *replacing* the DOM with a heavyweight SPA solution like React or Svelte. ZJAX implements the same functionality but with a simpler syntax and support for client-side Javascript support without reaching for Alpine or Stimulus.
+HTMX and friends broke new ground implementing the idea of *declarative AJAX* to be *sprinkled into* the DOM as an alternative to *replacing* the DOM with a heavyweight SPA solution like React or Svelte. ZJAX implements the same functionality with **simpler syntax** *and* enables **client-side JavaScript** without adding Alpine or Stimulus.
 
 ## Getting started
 
