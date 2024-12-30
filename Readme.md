@@ -216,7 +216,7 @@ In order for this action to work, we need to define it somewhere in our project 
 
 ### Defining Actions
 
-To register actions, call `zjax.actions(<actions-object)` with one or two arguments. Use a single argument to pass an object containing only action functions as its direct properties like this:
+To register actions, call `zjax.actions([namespace ,]<actions-object>)` with one or two arguments. Use a single argument to pass an object containing only action functions as its direct properties like this:
 
 ```js
 zjax.actions({
@@ -268,7 +268,7 @@ Instead, we can use a `z-action` tag to not only set up the listener and associa
 
 > ### *Heads up!*
 >
-> Watch out for this quirk of HTTP. When a `<script>` tag is added to the DOM for example by a `z-action`, it will be *ignored* by the browser. This means that you can't declare ZJAX Actions within a partial for example. Of course you can use `z-action` attributes in your partials and these will be parsed just fine. But the actual `zjax.action()` function used to *define* the action cannot be within a `<script>` tag contained in a swap response.
+> Watch out for this quirk of HTTP. When a `<script>` tag is added to the DOM for example by a `z-action`, it will be *ignored* by the browser. This means that you can't declare ZJAX Actions within a partial for example. Of course you can use `z-action` attributes in your partials and these will be parsed just fine. But the actual `zjax.action()` function used to *define* the action cannot be called within a `<script>` tag contained in a swap response.
 
 #### The `$` Action Helper object
 
@@ -285,6 +285,11 @@ This object is called the Action Helper and it provides a few handy properties a
 - `$(<selector>)` is a shortcut for `document.querySelector(<selector>)`.
 - `$()` returns the element which triggered this action when no selector is provided.
 - `$.event` returns the `event` object which triggered this action.
+
+***THE PROPERTIES BELOW ARE NOT YET IMPLEMENTED***
+
+---
+
 - `$.swap` performs the same action as a `z-swap` tag and receives the same specifiers except the trigger specifier which is ommited.
 - `$.render(<dom>, <selector>[|<swap-type>])` renders DOM elements to the target selector using an optional Swap-Type.
 - `await $.get(<url>)` is a shortcut for asynchronously fetching a document with the GET method and returning the response as a parsed DOM object.
@@ -292,7 +297,31 @@ This object is called the Action Helper and it provides a few handy properties a
 - `await $.post(<url>, <payload>)` is a shortcut for asynchronously sending the included `<payload>` with the POST method and returning the response as a parsed DOM object.
 - `await $.put(<url, <payload>)`, `$.patch(<url, <payload>)` are the same as `$.post` but using the PUT or PATCH method respectively.
 
+---
+
+### Applying inline functions directly to `z-action`
+
+For very short snippets of functionality like toggling a class when a button is clicked, ZJAX supports defining the function directly as the ZJAX value like this:
+
+```html
+<button z-action="$('#menu').classList.add('open')">
+  Open menu
+</button>
+```
+
+In this example, the default trigger "click" works fine for our needs. Explicit triggers may also be declared as usual.
+
+```html
+<button z-action="@mouseover $('#menu').classList.add('open')">
+  Open menu
+</button>
+```
+
+ZJAX is smart enough to recognize when the value looks like an action name and try to find that method in registered actions. If the value doesn't look like an action name – or even if it does but no such action has been registered with `zjax.actions()`, then the value will be treated as a custom inline function.
+
 ### Using a ZJAX Action as a `z-swap` trigger
+
+***NOT YET IMPLEMENTED***
 
 Sometimes it makes sense to trigger a `z-swap` action only once a `z-action` has completed successfully. For example, a `z-action` could be used to create a custom confirmation modal. And the `z-swap` should only happen when/if the user clicks the modal's "yes" button. 
 
@@ -302,23 +331,4 @@ ZJAX makes this very simple.
 2. Return `true` from the ZJAX Action function to trigger the `z-swap`.
 
 Note that this works for synchronous and asynchronous functions alike.
-
-
-# `z-confirm`
-
-***This is not yet implemented*** 
-
-
-# `z-active`
-
-***This is not yet implemented*** 
-
-
-# `z-validate`
-
-***This is not yet implemented*** 
-
-
-
-
 

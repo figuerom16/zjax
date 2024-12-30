@@ -1,3 +1,6 @@
+## 1.0.26 - 2024-12-30
+- Updated Readme
+
 ## 1.0.25 - 2024-12-30
 - ZActions are now parsing for both registered actions and inline functions
 - $() now returns target node
