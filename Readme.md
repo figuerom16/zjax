@@ -192,8 +192,6 @@ Response-Types available include:
 
 # `z-action` 
 
-***This is not yet implemented*** 
-
 The `z-action` attribute is used to bind a Javascript method to an element's event listener with syntax similar to `z-swap`. So use `z-swap` to interact with a remote server and use `z-action` to handle client-side only Javascript actions where no round trip to the server is needed (like closing a modal window).
 
 In this example, a `dblclick` event listener is added to the event which will call the `doSomething()` action. 
@@ -292,20 +290,6 @@ This object is called the Action Helper and it provides a few handy properties a
 - `$()` returns the element which triggered this action when no selector is provided.
 - `$.event` returns the `event` object which triggered this action.
 
----
-
-***THE PROPERTIES BELOW ARE NOT YET IMPLEMENTED***
-
----
-
-- `$.swap` performs the same action as a `z-swap` tag and receives the same specifiers except the trigger specifier which is ommited.
-- `$.render(<dom>, <selector>[|<swap-type>])` renders DOM elements to the target selector using an optional Swap-Type.
-- `await $.get(<url>)` is a shortcut for asynchronously fetching a document with the GET method and returning the response as a parsed DOM object.
-- `await $.delete(<url>)` is the same as `$.get` but uses the DELETE method.
-- `await $.post(<url>, <payload>)` is a shortcut for asynchronously sending the included `<payload>` with the POST method and returning the response as a parsed DOM object.
-- `await $.put(<url, <payload>)`, `$.patch(<url, <payload>)` are the same as `$.post` but using the PUT or PATCH method respectively.
-
----
 
 ### Applying inline functions directly to `z-action`
 
