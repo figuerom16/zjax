@@ -15,9 +15,26 @@ export function parseZActions(documentOrNode) {
       const zActionObject = getZActionObject(zActionString, node);
       // Add the action function listener to the node
       const $ = get$(node);
-      node.addEventListener(zActionObject.trigger, (event) => {
-        $.event = event;
-        zActionObject.handler($);
+      node.addEventListener(zActionObject.trigger, async function (event) {
+        try {
+          $.event = event;
+          const result = await zActionObject.handler($);
+          const actionEvent = new CustomEvent("action", {
+            detail: {
+              result: result,
+              event: event,
+            },
+          });
+          if (result) {
+            node.dispatchEvent(actionEvent);
+          }
+        } catch (error) {
+          console.error(
+            `ZJAX ERROR – Unable to execute z-action: ${error.message}\n`,
+            node,
+            error.stack
+          );
+        }
       });
       // Add a mutation observer to remove the event listener when the node is removed
       utils.attachMutationObserver(
@@ -52,7 +69,13 @@ function get$(node) {
         return node;
       }
       if (args.length === 1) {
-        return document.querySelector(args[0]);
+        const node = document.querySelector(args[0]);
+        if (!node) {
+          throw new Error(
+            `$('${args[0]}') did not match any elements in the DOM.`
+          );
+        }
+        return node;
       }
       throw new Error("$() can be called with a maximum of one argument.");
     },
@@ -112,7 +135,7 @@ function getZActionObject(ZActionString, node) {
   try {
     return {
       trigger,
-      handler: new Function("$", "return " + functionText),
+      handler: new Function("$", functionText),
     };
   } catch (error) {
     throw new Error(`z-action value is invalid: ${error.message}`);

@@ -80,9 +80,15 @@ Any standard DOM event as well as some special ones added by ZJAX and any custom
 
 Note that `@submit` can be used only on a `form` element.
 
-**The special `@load` trigger**
+##### The special `@load` trigger
 
-This event will fire when the element is loaded into the DOM. This works for initial page load as well as when elements are loaded into the DOM via a z-swap. Be careful not to create an infinite loop by swapping an element which has a `@load` trigger into itself.
+This event will fire when the element is loaded into the DOM. This works for initial page load as well as when elements are loaded into the DOM via a z-swap. Note that under the hood, the actual event listener is coverted to `zjax:load` so as not to conflict with the DOM's standard `load` event. 
+
+>  **Heads up!** Be careful not to create an infinite loop by swapping an element which has a `@load` trigger into itself.
+
+##### The special `@action` trigger
+
+When using a `z-swap` in conjunction with a `z-action` on the same element, the trigger can be set to `@action` which will be triggered when the `z-action` function returns any "truthy" value. This works for both asynchronous and synchronous functions.
 
 ### Specifying the Endpoint
 
@@ -126,7 +132,7 @@ In the example above, both the `#book-form` and `#cart-total` elements will be s
 
 ### Swapping response->target elements
 
-Sometimes the selector for the response element isn't the same as the target. Use the `->` operator to specify the response and target elements separately.
+Sometimes the selector for the target element isn't the same as the response that you want to swap in. Use the `->` operator to specify the response and target elements separately.
 
 ```html
 <button z-swap="/books/123 #book-form, #updated-cart->#cart">
@@ -286,6 +292,8 @@ This object is called the Action Helper and it provides a few handy properties a
 - `$()` returns the element which triggered this action when no selector is provided.
 - `$.event` returns the `event` object which triggered this action.
 
+---
+
 ***THE PROPERTIES BELOW ARE NOT YET IMPLEMENTED***
 
 ---
@@ -321,9 +329,7 @@ ZJAX is smart enough to recognize when the value looks like an action name and t
 
 ### Using a ZJAX Action as a `z-swap` trigger
 
-***NOT YET IMPLEMENTED***
-
-Sometimes it makes sense to trigger a `z-swap` action only once a `z-action` has completed successfully. For example, a `z-action` could be used to create a custom confirmation modal. And the `z-swap` should only happen when/if the user clicks the modal's "yes" button. 
+Sometimes it makes sense to trigger a `z-swap` action only once a `z-action` has completed successfully. For example, a `z-action` could be used to await confirmation before executing a dangerous action.
 
 ZJAX makes this very simple. 
 
@@ -331,4 +337,15 @@ ZJAX makes this very simple.
 2. Return `true` from the ZJAX Action function to trigger the `z-swap`.
 
 Note that this works for synchronous and asynchronous functions alike.
+
+```html
+<button 
+   z-swap="@action DELETE /books/{id}"
+   z-action="return confirm("Are you sure?")"
+>
+  Delete
+</button>
+```
+
+Notice in the above example that the inline action function returns the boolean value of the confirm function – but you could also return any truthy or un-truthy value either from an inline action or a named action registered on the global zjax object.
 

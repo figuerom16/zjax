@@ -1,3 +1,10 @@
+## 1.0.27 - 2024-12-30
+- Improved error reporting for z-swap
+- Changed @load to use zjax:load under the hood
+- Implemented @action trigger functionality
+- Docs
+- Switched git origin to use GitHub
+
 ## 1.0.26 - 2024-12-30
 - Updated Readme
 
