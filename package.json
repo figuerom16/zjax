@@ -1,17 +1,19 @@
 {
   "name": "zjax",
-  "version": "1.0.24",
+  "version": "1.0.25",
+  "type": "module",
   "description": "ZJAX is a lightweight yet powerful JavaScript library that brings modern SPA-like interactivity to your web pages with minimal effort",
   "main": "dist/zjax.min.js",
   "scripts": {
-    "build": "esbuild src/index.js --bundle --minify --outfile=dist/zjax.min.js",
+    "build": "esbuild src/main.js --bundle --minify --outfile=dist/zjax.min.js",
     "size": "gzip -c dist/zjax.min.js | wc -c | awk '{print \"Gzipped and minified size: \" $1 / 1024 \" KB\"}'",
-    "semver": "node script/semver.js"
+    "semver": "node script/semver.cjs"
   },
   "files": [
     "dist/zjax.min.js",
     "Readme.md",
-    "CHANGELOG.md"
+    "CHANGELOG.md",
+    "LICENSE"
   ],
   "keywords": [
     "htmx",

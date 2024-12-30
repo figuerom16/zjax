@@ -3,19 +3,27 @@
     <link rel="stylesheet" href="https://unpkg.com/tiny.css@0">
 		<!-- <script src="https://unpkg.com/zjax"></script> -->
 		<!-- <script src="dist/zjax.min.js"></script> -->
-		<script type="module" defer src="src/index.js"></script>
+		<script type="module" src="src/main.js"></script>
     <script>
       document.addEventListener("DOMContentLoaded", () => {
         zjax.debug = true;
         zjax.transitions = false;
+        zjax.actions({
+          removeMe($) {
+            $().remove()
+            $.all('h1').forEach(el => el.remove())
+            console.log($.event.target)
+          }
+        })
       });
+      
     </script>
   </head>
   
   <body>
     <h1>This is ZJAX</h1>
     <!-- <p>This will not be replaced by ZJAX. </p> -->
-    <p class="doobie">This will be replaced by ZJAX.</p>
+    <p class="doobie" z-action="removeMe">This will be replaced by ZJAX.</p>
     <a id="moby" href="https://httpbin.org/html" z-swap="@load h1">Fetch Moby Dick</a>
     <button id="moby" z-swap="@click ./other.html button">Button from INDEX</button>
     <!-- <a id="moby" href="https://httpbin.org/html" z-swap="@load h1->h1|inner">Fetch Moby Dick</a> -->

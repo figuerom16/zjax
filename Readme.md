@@ -296,7 +296,7 @@ This object is called the Action Helper and it provides a few handy properties a
 
 Sometimes it makes sense to trigger a `z-swap` action only once a `z-action` has completed successfully. For example, a `z-action` could be used to create a custom confirmation modal. And the `z-swap` should only happen when/if the user clicks the modal's "yes" button. 
 
-ZJAX make this very simple. 
+ZJAX makes this very simple. 
 
 1. Specify `@action` as the Trigger event for this `z-swap`.
 2. Return `true` from the ZJAX Action function to trigger the `z-swap`.

@@ -1,6 +1,4 @@
-export const zjax = getGlobalZjaxObject();
-
-function getGlobalZjaxObject() {
+export function getGlobalZjax() {
   return {
     debug: false,
     transitions: true,
@@ -27,6 +25,7 @@ function getGlobalZjaxObject() {
       } else {
         userActionsTarget = this.userActions;
       }
+
       Object.keys(object).forEach(function (name) {
         const actionFunction = object[name];
         userActionsTarget[name] = actionFunction;

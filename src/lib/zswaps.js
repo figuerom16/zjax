@@ -1,11 +1,9 @@
-import * as constants from "./constants.js";
-import { zjax } from "./zjax.js";
-import { debug } from "./debug.js";
+import { constants, debug, utils } from "../lib.js";
 
 export async function parseZSwaps(documentOrNode) {
-  const zSwapNodes = getMatchingNodes(documentOrNode, "[z-swap]");
+  const zSwapNodes = utils.getMatchingNodes(documentOrNode, "[z-swap]");
   debug(
-    `Found ${zSwapNodes.length} z-swap nodes in ${prettyNodeName(
+    `Found ${zSwapNodes.length} z-swap nodes in ${utils.prettyNodeName(
       documentOrNode
     )}`
   );
@@ -17,17 +15,17 @@ export async function parseZSwaps(documentOrNode) {
       const zSwapObject = getZSwapObject(zSwapString, node);
       // Add the swap function listener to the node
       const zSwapFunction = getZSwapFunction(zSwapObject, node);
-      attachEventListener(zSwapObject.trigger, zSwapFunction, node);
+      node.addEventListener(zSwapObject.trigger, zSwapFunction);
       // Add a mutation observer to remove the event listener when the node is removed
-      attachMutationObserver(zSwapObject.trigger, zSwapFunction, node);
+      utils.attachMutationObserver(zSwapObject.trigger, zSwapFunction, node);
       if (zSwapObject.trigger === "load") {
         node.dispatchEvent(new Event("load"));
       }
 
       debug(
-        `Added z-swap for '${zSwapObject.trigger}' events to ${prettyNodeName(
-          node
-        )}`
+        `Added z-swap for '${
+          zSwapObject.trigger
+        }' events to ${utils.prettyNodeName(node)}`
       );
     } catch (error) {
       console.error(
@@ -104,27 +102,6 @@ function getTriggerMethodOrEndpointPair(swapSpecifier) {
   }
 }
 
-function prettyNodeName(documentOrNode) {
-  return documentOrNode instanceof Document
-    ? "#document"
-    : "<" +
-        documentOrNode.tagName.toLowerCase() +
-        (documentOrNode.id ? "#" + documentOrNode.id : "") +
-        ">";
-}
-
-function getMatchingNodes(documentOrNode, selector) {
-  // Find all decendent nodes with a z-swap attribute
-  const nodesToParse = [];
-  nodesToParse.push(...documentOrNode.querySelectorAll(selector));
-  const isDocument = documentOrNode instanceof Document;
-  if (!isDocument && documentOrNode.matches(selector)) {
-    // And include the node itself if it has a z-swap attribute
-    nodesToParse.push(documentOrNode);
-  }
-  return nodesToParse;
-}
-
 function getSwaps(zSwapString) {
   // Parse a  like: "foo|inner->#bar|inner, #baz" into an array of objects
   // [
@@ -177,6 +154,10 @@ function getZSwapFunction(zSwap, node) {
       const responseDOM = await getResponseDOM(zSwap.method, zSwap.endpoint);
       // Swap nodes
       zSwap.swaps.forEach(function (swap) {
+        const swappingEl = document.querySelector(swap.target);
+        if (swappingEl) {
+          swappingEl.classList.add("zjax-swapping");
+        }
         // Get the source and target nodes
         const [responseNode, targetNode] = getResponseAndTargetNodes(
           responseDOM,
@@ -487,36 +468,6 @@ function normalizeNodeList(node) {
 
   // For a single node, just return as an array
   return [node];
-}
-
-function attachEventListener(trigger, handler, node) {
-  node.addEventListener(trigger, handler);
-}
-
-function attachMutationObserver(trigger, handler, node) {
-  // Create a MutationObserver to watch for node removal
-  // When the node is removed, remove the event listener
-  const observer = new MutationObserver((mutationsList) => {
-    for (const mutation of mutationsList) {
-      for (const removedNode of mutation.removedNodes) {
-        if (removedNode === node || removedNode.contains(node)) {
-          // Remove event listener when the node is removed from DOM
-          node.removeEventListener(trigger, handler);
-          zjax.debug &&
-            debug(
-              `Removing event listener for ${prettyNodeName(
-                node
-              )} (no longer in DOM)`
-            );
-          observer.disconnect(); // Stop observing
-          return;
-        }
-      }
-    }
-  });
-
-  // Observe the parent of the target node for childList changes
-  observer.observe(document.body, { childList: true, subtree: true });
 }
 
 function collapseCommas(str) {

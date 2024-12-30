@@ -1,3 +1,10 @@
+## 1.0.25 - 2024-12-30
+- ZActions are now parsing for both registered actions and inline functions
+- $() now returns target node
+- $(<selector>) now works as a shortcut for document.querySelector()
+- $.all(<selector) now works as a shortcut for document.querySelectorAll()
+- $.event now returns the event object
+
 ## 1.0.24 - 2024-12-29
 - HTMX style attribute updates to trigger CSS transitions
 - Refactored with src modules (ESM)
