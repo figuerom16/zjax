@@ -1,8 +1,12 @@
 # ZJAX
 
-ZJAX is a lightweight yet powerful JavaScript library (just 3KB gzipped) that brings modern SPA-like interactivity to your web pages with minimal effort. By simply adding intuitive "z-tag" attributes like `z-swap` and `z-action` to your HTML elements, ZJAX lets you dynamically update parts of a web page or bind client-side JavaScript actions directly to the DOM—all without writing verbose JavaScript code.
+ZJAX is a lightweight yet powerful JavaScript library (4.6K gzipped) that brings modern SPA-like interactivity to your web pages with minimal effort. By simply adding intuitive "z-tag" attributes like `z-swap` and `z-action` to your HTML elements, ZJAX lets you dynamically update parts of a web page or bind client-side JavaScript actions directly to the DOM — all without writing verbose JavaScript code.
 
 Inspired by HTMX, Hotwire, and Unpoly and compatible with *any* SSR backend like Rails, Laravel, Django, Astro – or even Wordpress, ZJAX seamlessly integrates into your workflow. 
+
+## Why not just use HTMX or Hotwire?
+
+HTMX and friends broke new ground implementing the idea of ***declarative AJAX*** to be *sprinkled into* the DOM as an alternative to *replacing* the DOM with a heavyweight SPA solution like React or Svelte. ZJAX implements the same functionality but with a simpler syntax and support for client-side Javascript support without reaching for Alpine or Stimulus.
 
 ## Getting started
 
@@ -23,7 +27,7 @@ You can now use ZJAX attributes anywhere in your project.
 
 The main workhorse of ZJAX is the `z-swap` attribute which can be added to any HTML tag to specify the elements we want to swap.
 
-You can try this right now with a plain HTML file.
+*You can try this right now with a plain HTML file.*
 
 **index.html**
 
@@ -214,10 +218,6 @@ In order for this action to work, we need to define it somewhere in our project 
 </script>
 ```
 
-> ### The `zjax` global object
->
-> When ZJAX is loaded, it creates the `window.zjax` object so that the `zjax` object available everywhere in your app. This means you can organize your files however you like. You can stick a script tag in your document head, add a separate file like "zjax-actions.js" (or whatever), or if your application is complex enough, maybe make a directory called "zjax-actions/" with separate files for different sections of your application.
-
 ### Defining Actions
 
 To register actions, call `zjax.actions([namespace ,]<actions-object>)` with one or two arguments. Use a single argument to pass an object containing only action functions as its direct properties like this:
@@ -258,7 +258,7 @@ For this example, the `z-action` would be used like this:
 </button>
 ```
 
-
+Note that since `zjax` is a globally available object, the `zjax.actions()` function may be called as many times as you like from anywhere in your application. This makes it possible to organize your code any way you like, for example you may want to create an `actions/` directory with separate namespaced files for `products.js`, `account.js`, and so on.
 
 ### How Actions work
 

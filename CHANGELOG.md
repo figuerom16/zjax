@@ -1,3 +1,6 @@
+## 1.0.28 - 2024-12-30
+- Updated docs
+
 ## 1.0.27 - 2024-12-30
 - Improved error reporting for z-swap
 - Changed @load to use zjax:load under the hood
