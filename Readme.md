@@ -6,7 +6,7 @@ Inspired by HTMX, Hotwire, and Unpoly and compatible with *any* SSR backend like
 
 ## Why not just use HTMX or Hotwire?
 
-HTMX and friends broke new ground implementing the idea of *declarative AJAX* to be *sprinkled into* the DOM as an alternative to *replacing* the DOM with a heavyweight SPA solution like React or Svelte. ZJAX implements the same functionality with **simpler syntax** *and* enables **client-side JavaScript** without adding Alpine or Stimulus.
+HTMX and friends broke new ground implementing the idea of *declarative AJAX* to be *sprinkled into* the DOM. ZJAX implements the same functionality with **simpler syntax** *and* also facilitates **client-side JavaScript** without adding Alpine or Stimulus.
 
 ## Getting started
 
@@ -166,14 +166,14 @@ The default swap-type is `outer` which replaces the element in its entirety. Alt
 
 Swap types available include:
 
-`outer` - Morph the entire element (default)  
-`inner` - Morph only inner content  
-`before` - Insert before this element  
-`prepend` - Insert before all other inner content  
-`after` - Insert after this element  
-`append` - Insert after all other inner content  
-`delete` - Ignore returned value and delete this element  
-`none` - Do nothing (typically used with dynamic values)  
+- `outer` - Morph the entire element (default)  
+- `inner` - Morph only inner content  
+- `before` - Insert before this element  
+- `prepend` - Insert before all other inner content  
+- `after` - Insert after this element  
+- `append` - Insert after all other inner content  
+- `delete` - Ignore returned value and delete this element  
+- `none` - Do nothing (typically used with dynamic values)  
 
 ### Specifying the Response-Type
 
@@ -189,8 +189,8 @@ In this example, only the inner contents of the response element will be used to
 
 Response-Types available include:
 
-`outer` - Use the entire response element (default)  
-`inner` - Use only inner content  of the response element
+- `outer` - Use the entire response element (default)  
+- `inner` - Use only inner content  of the response element
 
   
 
@@ -286,9 +286,10 @@ doSomething($) {
 
 This object is called the Action Helper and it provides a few handy properties and methods. 
 
-- `$(<selector>)` is a shortcut for `document.querySelector(<selector>)`.
 - `$()` returns the element which triggered this action when no selector is provided.
+- `$(<selector>)` is a shortcut for `document.querySelector(<selector>)`.
 - `$.event` returns the `event` object which triggered this action.
+- *...and more Action Helper properties and methods are coming soon*
 
 
 ### Applying inline functions directly to `z-action`
@@ -332,4 +333,15 @@ Note that this works for synchronous and asynchronous functions alike.
 ```
 
 Notice in the above example that the inline action function returns the boolean value of the confirm function – but you could also return any truthy or un-truthy value either from an inline action or a named action registered on the global zjax object.
+
+
+
+# The `zjax` global object
+
+When ZJAX is loaded, it creates the `window.zjax` object so that the `zjax` object available everywhere in your app. This means you can organize your action files however you like. You can stick a script tag in your document head, add a separate file like `zjax-actions.js` (or whatever), or if your application is complex enough, maybe make a directory called `actions/` with separate files for different sections of your application.
+
+There are also a few configuration options:
+
+- `zjax.debug` - Enables verbose debug logs to the console (default: `false`)
+- `zjax.transitions` Enables view transition API for browsers that support it (default: `false`)
 
