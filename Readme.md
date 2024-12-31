@@ -1,16 +1,16 @@
-# ZJAX
+# Zjax
 
-ZJAX is a lightweight yet powerful JavaScript library (4.6K gzipped) that brings modern SPA-like interactivity to your web pages with minimal effort. By simply adding intuitive "z-attributes" like `z-swap` and `z-action` to your HTML elements, ZJAX lets you dynamically update parts of a web page or bind client-side JavaScript actions directly to the DOM — all without writing verbose JavaScript code.
+Zjax is a lightweight yet powerful JavaScript library (4.6K gzipped) that brings modern SPA-like interactivity to your web pages with minimal effort. By simply adding intuitive "z-attributes" like `z-swap` and `z-action` to your HTML elements, Zjax lets you dynamically update parts of a web page or bind client-side JavaScript actions directly to the DOM — all without writing verbose JavaScript code.
 
-Inspired by HTMX, Hotwire, and Unpoly and compatible with *any* SSR backend like Rails, Laravel, Django, Astro – or even Wordpress, ZJAX seamlessly integrates into your workflow. 
+Inspired by HTMX, Hotwire, and Unpoly and compatible with *any* SSR backend like Rails, Laravel, Django, Astro – or even Wordpress, Zjax seamlessly integrates into your workflow. 
 
 ## Why not just use HTMX or Hotwire?
 
-HTMX and friends broke new ground implementing the idea of *declarative AJAX* to be *sprinkled into* the DOM. ZJAX implements the same functionality with **simpler syntax** *and* also facilitates **client-side JavaScript** without adding Alpine or Stimulus.
+HTMX and friends broke new ground implementing the idea of *declarative AJAX* to be *sprinkled into* the DOM. Zjax implements the same functionality with **simpler syntax** *and* also facilitates **client-side JavaScript** without adding Alpine or Stimulus.
 
 ## Getting started
 
-Just include the ZJAX CDN link in your document head.
+Just include the Zjax CDN link in your document head.
 
 ```html
 <head>
@@ -19,13 +19,13 @@ Just include the ZJAX CDN link in your document head.
 </head>
 ```
 
-You can now use ZJAX attributes anywhere in your project.
+You can now use Zjax attributes anywhere in your project.
 
 
 
 # `z-swap`
 
-The main workhorse of ZJAX is the `z-swap` attribute which can be added to any HTML tag to specify the elements we want to swap.
+The main workhorse of Zjax is the `z-swap` attribute which can be added to any HTML tag to specify the elements we want to swap.
 
 *You can try this right now with a plain HTML file.*
 
@@ -38,9 +38,9 @@ The main workhorse of ZJAX is the `z-swap` attribute which can be added to any H
   </head>
   
   <body>
-    <h1>This is ZJAX</h1>
+    <h1>This is Zjax</h1>
     <a href="https://httpbin.org/html" z-swap="p">Fetch Moby Dick</a>
-    <p>This will be replaced by ZJAX.</p>    
+    <p>This will be replaced by Zjax.</p>    
   </body>
 </html>
 ```
@@ -56,7 +56,7 @@ We've omitted the `href` value for brevity and because it will be ignored anyway
 
 ### The wildcard `*` element
 
-If a `*` is used by itself as the response swap element specifier, ZJAX will use entire response. This is most useful when the response is known to be a partial containing only the element or elements needed for the swap. 
+If a `*` is used by itself as the response swap element specifier, Zjax will use entire response. This is most useful when the response is known to be a partial containing only the element or elements needed for the swap. 
 
 For completeness, `*` can also be used for the target element specifier although it probably isn't all that useful since this effectively just replaces the body element contents.
 
@@ -80,7 +80,7 @@ Try prepending `@mouseover` to the `z-swap` value.
 </a>
 ```
 
-Any standard DOM event as well as some special ones added by ZJAX and any custom events you have defined globally can be specified prefixed with an @-sign like `@submit`, `@blur`, `@input`, `@dblclick`, `@my-custom-event`, etc.
+Any standard DOM event as well as some special ones added by Zjax and any custom events you have defined globally can be specified prefixed with an @-sign like `@submit`, `@blur`, `@input`, `@dblclick`, `@my-custom-event`, etc.
 
 Note that `@submit` can be used only on a `form` element.
 
@@ -206,7 +206,7 @@ In this example, a `dblclick` event listener is added to the event which will ca
 </div> 
 ```
 
-In order for this action to work, we need to define it somewhere in our project as ZJAX Action like this:
+In order for this action to work, we need to define it somewhere in our project as Zjax Action like this:
 
 ```html
 <script>
@@ -262,7 +262,7 @@ Note that since `zjax` is a globally available object, the `zjax.actions()` func
 
 ### How Actions work
 
-Naturally, an Action function may contain any valid Javascript. Vanilla JS is very powerful these days allowing for full access to DOM manipulation without the need for any JQuery-like library. But ZJAX gives us a couple of handy tools anyway just to make life a bit easier.
+Naturally, an Action function may contain any valid Javascript. Vanilla JS is very powerful these days allowing for full access to DOM manipulation without the need for any JQuery-like library. But Zjax gives us a couple of handy tools anyway just to make life a bit easier.
 
 ### Adding event listeners with `z-action`
 
@@ -272,7 +272,7 @@ Instead, we can use a `z-action` tag to not only set up the listener and associa
 
 > ### *Heads up!*
 >
-> Watch out for this quirk of HTTP. When a `<script>` tag is added to the DOM for example by a `z-action`, it will be *ignored* by the browser. This means that you can't declare ZJAX Actions within a partial for example. Of course you can use `z-action` attributes in your partials and these will be parsed just fine. But the actual `zjax.action()` function used to *define* the action cannot be called within a `<script>` tag contained in a swap response.
+> Watch out for this quirk of HTTP. When a `<script>` tag is added to the DOM for example by a `z-action`, it will be *ignored* by the browser. This means that you can't declare Zjax Actions within a partial for example. Of course you can use `z-action` attributes in your partials and these will be parsed just fine. But the actual `zjax.action()` function used to *define* the action cannot be called within a `<script>` tag contained in a swap response.
 
 #### The `$` Action Helper object
 
@@ -294,7 +294,7 @@ This object is called the Action Helper and it provides a few handy properties a
 
 ### Applying inline functions directly to `z-action`
 
-For very short snippets of functionality like toggling a class when a button is clicked, ZJAX supports defining the function directly as the ZJAX value like this:
+For very short snippets of functionality like toggling a class when a button is clicked, Zjax supports defining the function directly as the Zjax value like this:
 
 ```html
 <button z-action="$('#menu').classList.add('open')">
@@ -310,16 +310,16 @@ In this example, the default trigger "click" works fine for our needs. Explicit 
 </button>
 ```
 
-ZJAX is smart enough to recognize when the value looks like an action name and try to find that method in registered actions. If the value doesn't look like an action name – or even if it does but no such action has been registered with `zjax.actions()`, then the value will be treated as a custom inline function.
+Zjax is smart enough to recognize when the value looks like an action name and try to find that method in registered actions. If the value doesn't look like an action name – or even if it does but no such action has been registered with `zjax.actions()`, then the value will be treated as a custom inline function.
 
-### Using a ZJAX Action as a `z-swap` trigger
+### Using a Zjax Action as a `z-swap` trigger
 
 Sometimes it makes sense to trigger a `z-swap` action only once a `z-action` has completed successfully. For example, a `z-action` could be used to await confirmation before executing a dangerous action.
 
-ZJAX makes this very simple. 
+Zjax makes this very simple. 
 
 1. Specify `@action` as the Trigger event for this `z-swap`.
-2. Return `true` from the ZJAX Action function to trigger the `z-swap`.
+2. Return `true` from the Zjax Action function to trigger the `z-swap`.
 
 Note that this works for synchronous and asynchronous functions alike.
 
@@ -338,7 +338,7 @@ Notice in the above example that the inline action function returns the boolean 
 
 # The `zjax` global object
 
-When ZJAX is loaded, it creates the `window.zjax` object so that the `zjax` object available everywhere in your app. This means you can organize your action files however you like. You can stick a script tag in your document head, add a separate file like `zjax-actions.js` (or whatever), or if your application is complex enough, maybe make a directory called `actions/` with separate files for different sections of your application.
+When Zjax is loaded, it creates the `window.zjax` object so that the `zjax` object available everywhere in your app. This means you can organize your action files however you like. You can stick a script tag in your document head, add a separate file like `zjax-actions.js` (or whatever), or if your application is complex enough, maybe make a directory called `actions/` with separate files for different sections of your application.
 
 There are also a few configuration options:
 
