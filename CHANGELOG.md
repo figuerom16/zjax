@@ -1,3 +1,6 @@
+## 1.0.30 - 2025-01-01
+- Bug fix: use document.addEventListener for onParse events
+
 ## 1.0.29 - 2025-01-01
 - Added zjax.onParse config option
 
