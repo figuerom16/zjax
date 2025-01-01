@@ -1,3 +1,6 @@
+## 1.0.29 - 2025-01-01
+- Added zjax.onParse config option
+
 ## 1.0.28 - 2024-12-30
 - Updated docs
 
