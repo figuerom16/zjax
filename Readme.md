@@ -1,3 +1,4 @@
+
 # Zjax
 
 Zjax is a lightweight yet powerful JavaScript library (4.6K gzipped) that brings modern SPA-like interactivity to your web pages with minimal effort. By simply adding intuitive "z-attributes" like `z-swap` and `z-action` to your HTML elements, Zjax lets you dynamically update parts of a web page or bind client-side JavaScript actions directly to the DOM — all without writing verbose JavaScript code.
@@ -6,7 +7,7 @@ Inspired by HTMX, Hotwire, and Unpoly and compatible with *any* SSR backend like
 
 ## Why not just use HTMX or Hotwire?
 
-HTMX and friends broke new ground implementing the idea of *declarative AJAX* to be *sprinkled into* the DOM. Zjax implements the same functionality with **simpler syntax** *and* also facilitates **client-side JavaScript** without adding Alpine or Stimulus.
+HTMX and friends broke new ground implementing the idea of *declarative AJAX* to be *sprinkled into* the DOM. Zjax implements the same functionality with **simpler syntax** *and* also facilitates **client-side JavaScript** without the need for an additional JS library like Alpine or Stimulus.
 
 ## Getting started
 
@@ -66,7 +67,7 @@ Note that response-types and swap-types can not be combined with `*` since this 
 >
 >  `z-swap="[@trigger>] [HTTP-method] [endpoint] [swap-elements]"`
 >
-> All specifiers are optional as long as they can be inferred from context. Each specifier is separated by a space. The order shown above is the recommended convention for readability. Remember that the Trigger must always be prefixed with "@" and that a valid endpoint must always start with "http://", "https://", "/", "./", or can it can be a single dot, ".".
+> All specifiers are optional as long as they can be inferred from context. Each specifier is separated by a space. The order shown above is the recommended convention for readability. Remember that the trigger must always be prefixed with "@" and that a valid endpoint must always start with "http://", "https://", "/", "./", or it can be a single dot, ".".
 
 ---
 
@@ -84,13 +85,13 @@ Any standard DOM event as well as some special ones added by Zjax and any custom
 
 Note that `@submit` can be used only on a `form` element.
 
-##### The special `@load` trigger
+#### The special `@load` trigger
 
 This event will fire when the element is loaded into the DOM. This works for initial page load as well as when elements are loaded into the DOM via a z-swap. Note that under the hood, the actual event listener is coverted to `zjax:load` so as not to conflict with the DOM's standard `load` event. 
 
 >  **Heads up!** Be careful not to create an infinite loop by swapping an element which has a `@load` trigger into itself.
 
-##### The special `@action` trigger
+#### The special `@action` trigger
 
 When using a `z-swap` in conjunction with a `z-action` on the same element, the trigger can be set to `@action` which will be triggered when the `z-action` function returns any "truthy" value. This works for both asynchronous and synchronous functions.
 
