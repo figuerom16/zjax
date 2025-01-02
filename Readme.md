@@ -55,21 +55,12 @@ In this example, we specified only the element to be swapped and other specifier
 
 We've omitted the `href` value for brevity and because it will be ignored anyway since the explicitly specified endpoint URL takes precedence.
 
-### The wildcard `*` element
+### Format of `z-swap` value
 
-If a `*` is used by itself as the response swap element specifier, Zjax will use entire response. This is most useful when the response is known to be a partial containing only the element or elements needed for the swap. 
-
-For completeness, `*` can also be used for the target element specifier although it probably isn't all that useful since this effectively just replaces the body element contents.
-
-Note that response-types and swap-types can not be combined with `*` since this is somewhat nonsensical. So something like `*|inner` will throw an error.
-
-> ## Format of `z-swap` value
->
-> ```html
-> z-swap="[@trigger>] [HTTP-method] [endpoint] [swap-elements]"
-> ```
->
-> All specifiers are optional as long as they can be inferred from context. Each specifier is separated by a space. The order shown above is the recommended convention for readability. Remember that the trigger must always be prefixed with "@" and that a valid endpoint must always start with "http://", "https://", "/", "./", or it can be a single dot, ".".
+```
+z-swap="[@trigger>] [HTTP-method] [endpoint] [swap-elements]"
+```
+The four specifiers are optional as long as they can be inferred from context. Each specifier is separated by a space. The order shown above is the recommended convention for readability. Remember that the trigger must always be prefixed with "@" and that a valid endpoint must always start with "http://", "https://", "/", "./", or it can be a single dot, ".".
 
 ---
 
@@ -157,6 +148,14 @@ Use a `*` character to specify the entire page content.
 
 In the above example, presumably the `/books/123` route returns a partial containing only the elements we need.
 
+### The wildcard `*` element
+
+If a `*` is used by itself as the response swap element specifier, Zjax will use entire response. This is most useful when the response is known to be a partial containing only the element or elements needed for the swap. 
+
+For completeness, `*` can also be used for the target element specifier although it probably isn't all that useful since this effectively just replaces the body element contents.
+
+Note that response-types and swap-types can not be combined with `*` since this is somewhat nonsensical. So something like `*|inner` will throw an error.
+
 ### Specifying the Swap-Type
 
 The default swap-type is `outer` which replaces the element in its entirety. Alternatively, you may want to replace only the inner content of the element, or maybe insert the response element *after* the target. The swap-type can be appended to the target element using the pipe `|` character. Note that the swap-type only affects the target element.
@@ -223,7 +222,11 @@ In order for this action to work, we need to define it somewhere in our project 
 
 ### Defining Actions
 
-To register actions, call `zjax.actions([namespace ,]<actions-object>)` with one or two arguments. Use a single argument to pass an object containing only action functions as its direct properties like this:
+Register actions like this:
+```
+zjax.actions([namespace ,]<actions-object>)
+```
+Actions can be registered with one or two arguments. Use a single argument to pass an object containing only action functions as its direct properties like this:
 
 ```js
 zjax.actions({
