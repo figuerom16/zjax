@@ -65,7 +65,9 @@ Note that response-types and swap-types can not be combined with `*` since this 
 
 > ## Format of `z-swap` value
 >
->  `z-swap="[@trigger>] [HTTP-method] [endpoint] [swap-elements]"`
+> ```html
+> z-swap="[@trigger>] [HTTP-method] [endpoint] [swap-elements]"
+> ```
 >
 > All specifiers are optional as long as they can be inferred from context. Each specifier is separated by a space. The order shown above is the recommended convention for readability. Remember that the trigger must always be prefixed with "@" and that a valid endpoint must always start with "http://", "https://", "/", "./", or it can be a single dot, ".".
 
