@@ -1,11 +1,12 @@
 import { constants, debug, utils, parseZActions } from "../lib.js";
 
 export async function parseZSwaps(documentOrNode) {
+  // Find all nodes with a z-swap attribute
   const zSwapNodes = utils.getMatchingNodes(documentOrNode, "[z-swap]");
   debug(
     `Found ${zSwapNodes.length} z-swap nodes in ${utils.prettyNodeName(
-      documentOrNode
-    )}`
+      documentOrNode,
+    )}`,
   );
 
   for (const node of zSwapNodes) {
@@ -31,13 +32,13 @@ export async function parseZSwaps(documentOrNode) {
       debug(
         `Added z-swap for '${
           zSwapObject.trigger
-        }' events to ${utils.prettyNodeName(node)}`
+        }' events to ${utils.prettyNodeName(node)}`,
       );
     } catch (error) {
       console.error(
         `ZJAX ERROR – Unable to parse z-swap: ${error.message}\n`,
         node,
-        error.stack
+        error.stack,
       );
     }
   }
@@ -65,11 +66,6 @@ function getZSwapObject(zSwapString, node) {
     }
   }
 
-  // Special case: @submit trigger is only available on <FORM> elements
-  if (zSwapObject.trigger === "submit" && node.tagName !== "FORM") {
-    throw new Error("@submit trigger is only available on <FORM> elements");
-  }
-
   // Add the array of swaps
   zSwapObject.swaps = getSwaps(leftoverParts.join(" "));
 
@@ -88,6 +84,11 @@ function getZSwapObject(zSwapString, node) {
     } else {
       throw new Error("No endpoint inferrable or specified");
     }
+  }
+
+  // Special case: @submit trigger only valid on FORM elements
+  if (zSwapObject.trigger !== "submit") {
+    throw new Error("@submit trigger is only available on <FORM> elements");
   }
   return zSwapObject;
 }
@@ -116,58 +117,71 @@ function getSwaps(zSwapString) {
   //   { response: "#baz", target: "#baz", responseType: "outer", swapType: "outer" }
   // ]
   const swaps = [];
-  zSwapString.split(",").forEach(function (zSwapPart) {
+  for (const zSwapPart of zSwapString.split(",")) {
     const swap = {};
     const responseAndTargetSwaps = zSwapPart.split("->") || [];
     const targetNodeAndSwapType = responseAndTargetSwaps.pop();
     const [targetNode, swapType] = targetNodeAndSwapType.split("|");
     const responseNodeAndResponseType = responseAndTargetSwaps[0] || "";
-    const [responseNode, responseType] =
-      responseNodeAndResponseType && responseNodeAndResponseType.split("|");
-    swap["response"] = responseNode || targetNode;
-    swap["target"] = targetNode;
-    swap["responseType"] = (responseType && responseType.trim()) || "outer";
-    swap["swapType"] = (swapType && swapType.trim()) || "outer";
+    const [responseNode, responseType] = responseNodeAndResponseType?.split(
+      "|",
+    ) || [null, null];
+    swap.response = responseNode || targetNode;
+    swap.target = targetNode;
+    swap.responseType = responseType?.trim() || "outer";
+    swap.swapType = swapType?.trim() || "outer";
     // Only allow valid Response Types
     if (
-      swap["responseType"] &&
-      !constants.responseTypes.includes(swap["responseType"])
+      swap.responseType &&
+      !constants.responseTypes.includes(swap.responseType)
     ) {
-      throw new Error(`Invalid swap type: ${swap["responseType"]}`);
+      throw new Error(`Invalid swap type: ${swap.responseType}`);
     }
     // Only allow valid Swap Types
-    if (swap["swapType"] && !constants.swapTypes.includes(swap["swapType"])) {
-      throw new Error(`Invalid swap type: ${swap["swapType"]}`);
+    if (swap.swapType && !constants.swapTypes.includes(swap.swapType)) {
+      throw new Error(`Invalid swap type: ${swap.swapType}`);
     }
     // Special case: Disallow wild cards with swap/response types
-    if (swap["response"] === "*" && swap["responseType"] !== "outer") {
-      throw new Error('Wild card "*" can notbe piped to a Response Type');
+    if (swap.response === "*" && swap.responseType !== "outer") {
+      throw new Error('Wild card "*" can not be piped to a Response Type');
     }
-    if (swap["target"] === "*" && swap["swapType"] !== "outer") {
+    if (swap.target === "*" && swap.swapType !== "outer") {
       throw new Error('Wild card "*" can not be piped to a Swap Type');
     }
     swaps.push(swap);
-  });
+  }
   return swaps;
 }
 
 function getZSwapFunction(zSwap, node) {
-  return async function (event) {
+  return async (event) => {
+    // Add formData to zSwap now at swap time (so form values are populated)
+    formData = (node.tagName === "FORM" && new FormData(event.target)) || null;
+
     event.preventDefault();
     event.stopPropagation();
     debug("z-swap triggered for", zSwap);
-    // Call the action
+
     try {
+      // Emit event
       const requestEvent = new CustomEvent("zjax:request", {
         detail: {
           node: node,
           trigger: zSwap.trigger,
           method: zSwap.method,
           endpoint: zSwap.endpoint,
+          formData: formData,
         },
       });
       document.dispatchEvent(requestEvent);
-      const responseDOM = await getResponseDOM(zSwap.method, zSwap.endpoint);
+
+      // Call the action
+      const responseDOM = await getResponseDOM(
+        zSwap.method,
+        zSwap.endpoint,
+        formData,
+      );
+
       const responseDOMToLog = responseDOM.body || responseDOM.documentElement;
       const responseEvent = new CustomEvent("zjax:response", {
         detail: {
@@ -177,7 +191,7 @@ function getZSwapFunction(zSwap, node) {
       });
       document.dispatchEvent(responseEvent);
       // Swap nodes
-      zSwap.swaps.forEach(function (swap) {
+      for (const swap of zSwap.swaps) {
         const swappingEl = document.querySelector(swap.target);
         if (swappingEl) {
           swappingEl.classList.add("zjax-swapping");
@@ -185,10 +199,10 @@ function getZSwapFunction(zSwap, node) {
         // Get the source and target nodes
         const [responseNode, targetNode] = getResponseAndTargetNodes(
           responseDOM,
-          swap
+          swap,
         );
         // Before swapping in a response node, parse it for z-swaps
-        debug(`Parsing incoming response for z-swaps`);
+        debug("Parsing incoming response for z-swaps");
         if (responseNode) {
           // Tricky! You might have a z-swap="#not-in-response|delete"
           // so then there's nothing to parse in the response.
@@ -202,7 +216,7 @@ function getZSwapFunction(zSwap, node) {
               targetNode,
               responseNode,
               swap.swapType,
-              swap.responseType
+              swap.responseType,
             );
           });
         } else {
@@ -210,10 +224,11 @@ function getZSwapFunction(zSwap, node) {
             targetNode,
             responseNode,
             swap.swapType,
-            swap.responseType
+            swap.responseType,
           );
         }
-      });
+      }
+
       const swapEvent = new CustomEvent("zjax:swap", {
         detail: {
           node: node,
@@ -225,22 +240,20 @@ function getZSwapFunction(zSwap, node) {
       console.error(
         `ZJAX ERROR – Unable to execute z-swap function: ${error.message}\n`,
         node,
-        error.stack
+        error.stack,
       );
     }
   };
 }
 
-async function getResponseDOM(method, endpoint) {
-  // Get formData?
-  // const body = ?? # TODO
+async function getResponseDOM(method, endpoint, formData) {
   const response = await fetch(endpoint, {
     method: method,
-    body: null,
+    body: formData || null,
   });
   if (!response.ok) {
     throw new Error(
-      `${response.status} ${response.statusText} for ${endpoint}`
+      `${response.status} ${response.statusText} for ${endpoint}`,
     );
     // Todo: Think of some way to let the developer handle
     // this error to show a message to the useras an alert
@@ -248,7 +261,7 @@ async function getResponseDOM(method, endpoint) {
   }
   const responseDOM = new DOMParser().parseFromString(
     await response.text(),
-    "text/html"
+    "text/html",
   );
   debug(`z-swap response from ${endpoint} received and parsed`);
   return responseDOM;
@@ -256,7 +269,6 @@ async function getResponseDOM(method, endpoint) {
 
 function getResponseAndTargetNodes(responseDOM, swap) {
   let targetNode;
-  let responseNode;
 
   if (swap.target === "*") {
     // It isn't possible to use JS to replace the entire document
@@ -269,7 +281,7 @@ function getResponseAndTargetNodes(responseDOM, swap) {
     targetNode = document.querySelector(swap.target);
   }
 
-  responseNode =
+  const responseNode =
     swap.response === "*"
       ? responseDOM
       : responseDOM.querySelector(swap.response);
@@ -282,7 +294,7 @@ function getResponseAndTargetNodes(responseDOM, swap) {
   // Make sure there's a valid response node for all swap types except "none" or "delete"
   if (!responseNode && swap.swapType !== "none" && swap.swapType !== "delete") {
     throw new Error(
-      `Source node ${swap.response} does not exist in response DOM`
+      `Source node ${swap.response} does not exist in response DOM`,
     );
   }
 
@@ -291,7 +303,7 @@ function getResponseAndTargetNodes(responseDOM, swap) {
 
 function getMutatedResponseNodeAndAttributesToUpdateMap(
   targetNode,
-  responseNode
+  responseNode,
 ) {
   // Return the mutated responseNode and an attributesToUpdate object for later use.
   // The mutated responseNode retains most attributes from the targetNode for any
@@ -302,13 +314,13 @@ function getMutatedResponseNodeAndAttributesToUpdateMap(
   // response.
   const targetNodesWithIds = querySelectorAllIncludingParent(
     targetNode,
-    `[id]`
+    "[id]",
   );
 
   for (const targetNodeWithId of targetNodesWithIds) {
     const responseNodeWithMatchingId = querySelectorIncludingParent(
       responseNode,
-      `[id="${targetNodeWithId.id}"]`
+      `[id="${targetNodeWithId.id}"]`,
     );
     if (responseNodeWithMatchingId) {
       const attributesToRetain = getAttributes(targetNodeWithId);
@@ -339,9 +351,9 @@ function swapOneNode(targetNode, responseNode, swapType, responseType) {
   // Outer
   if (swapType === "outer") {
     const targetNodeParent = targetNode.parentNode;
-    responseNodes.forEach((item) => {
+    for (const item of responseNodes) {
       targetNodeParent.insertBefore(item, targetNode);
-    });
+    }
     targetNodeParent.removeChild(targetNode);
     updateAttributes(responseNode, attributesToUpdateMap);
     return;
@@ -350,18 +362,18 @@ function swapOneNode(targetNode, responseNode, swapType, responseType) {
   // Inner
   if (swapType === "inner") {
     targetNode.textContent = "";
-    responseNodes.forEach((item) => {
+    for (const item of responseNodes) {
       targetNode.appendChild(item);
-    });
+    }
     updateAttributes(responseNode, attributesToUpdateMap);
     return;
   }
 
   // Before
   if (swapType === "before") {
-    responseNodes.forEach((item) => {
+    for (const item of responseNodes) {
       targetNode.parentNode.insertBefore(item, targetNode);
-    });
+    }
     updateAttributes(responseNode, attributesToUpdateMap);
     return;
   }
@@ -370,14 +382,14 @@ function swapOneNode(targetNode, responseNode, swapType, responseType) {
   if (swapType === "after") {
     const parentNode = targetNode.parentNode;
     let referenceNodeToAppendTo = targetNode;
-    responseNodes.forEach((item) => {
+    for (const item of responseNodes) {
       if (item === parentNode.lastChild) {
         parentNode.appendChild(item);
       } else {
         parentNode.insertBefore(item, referenceNodeToAppendTo.nextSibling); // Otherwise, insert after the reference node
       }
       referenceNodeToAppendTo = item;
-    });
+    }
     updateAttributes(responseNode, attributesToUpdateMap);
     return;
   }
@@ -385,22 +397,23 @@ function swapOneNode(targetNode, responseNode, swapType, responseType) {
   // Prepend
   if (swapType === "prepend") {
     const firstChild = targetNode.firstChild;
-    responseNodes.forEach((item) => {
+
+    for (const item of responseNodes) {
       if (firstChild) {
         targetNode.insertBefore(item, firstChild);
       } else {
         targetNode.appendChild(item);
       }
-    });
+    }
     updateAttributes(responseNode, attributesToUpdateMap);
     return;
   }
 
   // Append
   if (swapType === "append") {
-    responseNodes.forEach((item) => {
+    for (const item of responseNodes) {
       targetNode.appendChild(item);
-    });
+    }
     updateAttributes(responseNode, attributesToUpdateMap);
     return;
   }
@@ -439,7 +452,7 @@ function querySelectorAllIncludingParent(node, selector) {
 function getAttributes(node) {
   const attributes = [];
   for (const attribute of Array.from(node.attributes).filter(
-    (attr) => !constants.attrsToNotFreeze.includes(attr.name)
+    (attr) => !constants.attrsToNotFreeze.includes(attr.name),
   )) {
     attributes.push([attribute.name, attribute.value]);
   }
@@ -454,20 +467,20 @@ function setAttributes(node, attributes) {
 
 function removeAttributes(node) {
   // Iterate through all attributes of the node
-  Array.from(node.attributes).forEach((attr) => {
+  for (const attr of Array.from(node.attributes)) {
     // If the attribute is not in the allowed list, remove it
     if (!constants.attrsToNotFreeze.includes(attr.name)) {
       node.removeAttribute(attr.name);
     }
-  });
+  }
 }
 
 async function updateAttributes(outerNode, attributesToUpdateMap) {
-  await setTimeout(() => {
+  setTimeout(() => {
     for (const [id, attributes] of Object.entries(attributesToUpdateMap)) {
       const nodeWithId = querySelectorIncludingParent(
         outerNode,
-        `[id="${id}"]`
+        `[id="${id}"]`,
       );
       if (nodeWithId) {
         removeAttributes(nodeWithId);

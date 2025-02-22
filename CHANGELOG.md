@@ -1,3 +1,6 @@
+## 1.0.31 - 2025-02-22
+- Fixed @submit to actually include formData as body
+
 ## 1.0.30 - 2025-01-01
 - Bug fix: use document.addEventListener for onParse events
 

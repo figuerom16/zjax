@@ -5,7 +5,7 @@ import { getGlobalZjax, parseZSwaps, parseZActions, debug } from "./lib.js";
 window.zjax = getGlobalZjax();
 
 // Parse the DOM on load.
-document.addEventListener("DOMContentLoaded", function () {
+document.addEventListener("DOMContentLoaded", () => {
   debug("Parsing DOM");
   parseZSwaps(document);
   parseZActions(document);
@@ -16,7 +16,7 @@ document.addEventListener("DOMContentLoaded", function () {
     : [window.zjax.parseOn];
 
   for (const event of parseOnEvents) {
-    document.addEventListener(event, function () {
+    document.addEventListener(event, () => {
       debug("Reparsing DOM on", event);
       parseZSwaps(document);
       parseZActions(document);

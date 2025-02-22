@@ -26,10 +26,11 @@ export function getGlobalZjax() {
         userActionsTarget = this.userActions;
       }
 
-      Object.keys(object).forEach(function (name) {
+      const objectKeys = Object.keys(object);
+      for (const name in objectKeys) {
         const actionFunction = object[name];
         userActionsTarget[name] = actionFunction;
-      });
+      }
     },
   };
 }
