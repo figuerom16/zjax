@@ -87,7 +87,7 @@ function getZSwapObject(zSwapString, node) {
   }
 
   // Special case: @submit trigger only valid on FORM elements
-  if (zSwapObject.trigger !== "submit") {
+  if (zSwapObject.trigger === "submit" && node.tagName !== "FORM") {
     throw new Error("@submit trigger is only available on <FORM> elements");
   }
   return zSwapObject;

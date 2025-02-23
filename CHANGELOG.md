@@ -1,3 +1,6 @@
+## 1.0.32 - 2025-02-23
+- Fixed a regression causing all z-swaps to fail
+
 ## 1.0.31 - 2025-02-22
 - Fixed @submit to actually include formData as body
 
