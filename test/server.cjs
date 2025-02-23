@@ -9,7 +9,7 @@ app.use(express.static(path.join(__dirname, "../dist")));
 
 app.post("/submit", (req, res) => {
   console.log("req.body", req.body);
-  res.send("<h2>Success</h2>");
+  res.send("<h1>Success</h1>");
 });
 
 app.listen(3000, () => {

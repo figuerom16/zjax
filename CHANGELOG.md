@@ -1,3 +1,6 @@
+## 1.0.35 - 2025-02-23
+- Fixed bug with POST method on non-form elements 
+
 ## 1.0.34 - 2025-02-23
 - Converted form data to string instead of JSON
 

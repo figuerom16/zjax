@@ -3,7 +3,7 @@
   <head>
     <link rel="stylesheet" href="https://cdn.simplecss.org/simple.min.css" />
     <script src="/zjax.min.js"></script>
-    <!-- <script src="https://unpkg.com/zjax@1.0.32"></script> -->
+    <!-- <script src="https://unpkg.com/zjax@1.0.34"></script> -->
     <script>
       zjax.debug = true;
     </script>
@@ -15,6 +15,8 @@
       <input type="text" name="phone" />
       <button type="submit">Go</button>
     </form>
+
+    <a z-swap="POST ./submit h1">MAKE ERROR</a>
 
     <h1 z-action="@mouseover $().remove()">This is Zjax</h1>
     <a href="https://httpbin.org/html" z-swap="p">Fetch Moby Dick</a>

@@ -161,7 +161,7 @@ function getZSwapFunction(zSwap, node) {
     event.stopPropagation();
     const formData =
       (node.tagName === "FORM" && new FormData(event.target)) || null;
-    zSwap.formData = convertFormDataToString(formData);
+    zSwap.formData = formData ? convertFormDataToString(formData) : null;
     debug("z-swap triggered for", zSwap);
 
     try {
