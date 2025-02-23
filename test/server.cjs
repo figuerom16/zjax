@@ -1,14 +1,7 @@
 const express = require("express");
 const path = require("node:path");
 
-const app = express();
-app.use(
-  express.urlencoded({
-    extended: true,
-  }),
-);
-
-const port = 3000;
+const app = express().use(express.urlencoded({ extended: true }));
 
 // Serve static files from the 'test' directory
 app.use(express.static(path.join(__dirname, "html")));
@@ -19,6 +12,6 @@ app.post("/submit", (req, res) => {
   res.send("<h2>Success</h2>");
 });
 
-app.listen(port, () => {
-  console.log(`Server listening on port ${port}`);
+app.listen(3000, () => {
+  console.log("Server listening on port 3000");
 });

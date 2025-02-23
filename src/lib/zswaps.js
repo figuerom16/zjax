@@ -161,13 +161,7 @@ function getZSwapFunction(zSwap, node) {
     event.stopPropagation();
     const formData =
       (node.tagName === "FORM" && new FormData(event.target)) || null;
-    const formDataObject = {};
-    if (formData) {
-      for (const [key, value] of formData.entries()) {
-        formDataObject[key] = value;
-      }
-    }
-    zSwap.formData = formData ? formDataObject : null;
+    zSwap.formData = convertFormDataToString(formData);
     debug("z-swap triggered for", zSwap);
 
     try {
@@ -257,7 +251,10 @@ function getZSwapFunction(zSwap, node) {
 async function getResponseDOM(method, endpoint, formData) {
   const response = await fetch(endpoint, {
     method: method,
-    body: (formData && JSON.stringify(formData)) || null,
+    body: formData || null,
+    headers: {
+      "Content-Type": "application/x-www-form-urlencoded",
+    },
   });
   if (!response.ok) {
     throw new Error(
@@ -539,4 +536,17 @@ function normalizeNodeList(node) {
 function collapseCommas(str) {
   // If commas have spaces next to them, remove those spaces.
   return str.replace(/\s*,\s*/g, ",");
+}
+
+function convertFormDataToString(formData) {
+  // Create a URLSearchParams object
+  const urlEncodedData = new URLSearchParams();
+
+  // Iterate over FormData entries and append to URLSearchParams
+  for (const [key, value] of formData.entries()) {
+    urlEncodedData.append(key, value);
+  }
+
+  // Convert to string
+  return urlEncodedData.toString();
 }

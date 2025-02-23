@@ -1,3 +1,6 @@
+## 1.0.34 - 2025-02-23
+- Converted form data to string instead of JSON
+
 ## 1.0.33 - 2025-02-23
 - WIP: Fixing formData body
 
