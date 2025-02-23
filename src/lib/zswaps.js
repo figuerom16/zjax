@@ -156,10 +156,18 @@ function getSwaps(zSwapString) {
 function getZSwapFunction(zSwap, node) {
   return async (event) => {
     // Add formData to zSwap now at swap time (so form values are populated)
-    formData = (node.tagName === "FORM" && new FormData(event.target)) || null;
 
     event.preventDefault();
     event.stopPropagation();
+    const formData =
+      (node.tagName === "FORM" && new FormData(event.target)) || null;
+    const formDataObject = {};
+    if (formData) {
+      for (const [key, value] of formData.entries()) {
+        formDataObject[key] = value;
+      }
+    }
+    zSwap.formData = formData ? formDataObject : null;
     debug("z-swap triggered for", zSwap);
 
     try {
@@ -170,7 +178,7 @@ function getZSwapFunction(zSwap, node) {
           trigger: zSwap.trigger,
           method: zSwap.method,
           endpoint: zSwap.endpoint,
-          formData: formData,
+          formData: zSwap.formData,
         },
       });
       document.dispatchEvent(requestEvent);
@@ -179,7 +187,7 @@ function getZSwapFunction(zSwap, node) {
       const responseDOM = await getResponseDOM(
         zSwap.method,
         zSwap.endpoint,
-        formData,
+        zSwap.formData,
       );
 
       const responseDOMToLog = responseDOM.body || responseDOM.documentElement;
@@ -249,7 +257,7 @@ function getZSwapFunction(zSwap, node) {
 async function getResponseDOM(method, endpoint, formData) {
   const response = await fetch(endpoint, {
     method: method,
-    body: formData || null,
+    body: (formData && JSON.stringify(formData)) || null,
   });
   if (!response.ok) {
     throw new Error(

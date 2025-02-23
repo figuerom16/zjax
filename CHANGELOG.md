@@ -1,3 +1,6 @@
+## 1.0.33 - 2025-02-23
+- WIP: Fixing formData body
+
 ## 1.0.32 - 2025-02-23
 - Fixed a regression causing all z-swaps to fail
 
