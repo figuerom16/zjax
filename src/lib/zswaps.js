@@ -539,14 +539,9 @@ function collapseCommas(str) {
 }
 
 function convertFormDataToString(formData) {
-  // Create a URLSearchParams object
   const urlEncodedData = new URLSearchParams();
-
-  // Iterate over FormData entries and append to URLSearchParams
   for (const [key, value] of formData.entries()) {
     urlEncodedData.append(key, value);
   }
-
-  // Convert to string
   return urlEncodedData.toString();
 }
