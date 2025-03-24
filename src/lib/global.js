@@ -19,15 +19,15 @@ export function getGlobalZjax() {
       }
       const object = arg2 ? arg2 : arg1;
       let userActionsTarget;
+
       if (namespace) {
         this.userActions[namespace] = {};
         userActionsTarget = this.userActions[namespace];
       } else {
         userActionsTarget = this.userActions;
       }
-
       const objectKeys = Object.keys(object);
-      for (const name in objectKeys) {
+      for (const name of objectKeys) {
         const actionFunction = object[name];
         userActionsTarget[name] = actionFunction;
       }

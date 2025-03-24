@@ -1,3 +1,6 @@
+## 1.0.36 - 2025-03-24
+- Fixed a regression that broke zjax.actions()
+
 ## 1.0.35 - 2025-02-23
 - Fixed bug with POST method on non-form elements 
 

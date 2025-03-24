@@ -3,9 +3,15 @@
   <head>
     <link rel="stylesheet" href="https://cdn.simplecss.org/simple.min.css" />
     <script src="/zjax.min.js"></script>
-    <!-- <script src="https://unpkg.com/zjax@1.0.34"></script> -->
+    <!-- <script src="https://unpkg.com/zjax@1.0.30"></script> -->
     <script>
       zjax.debug = true;
+
+      zjax.actions({
+        alert() {
+          alert("Hello, Zjax!");
+        },
+      });
     </script>
   </head>
 
@@ -20,6 +26,6 @@
 
     <h1 z-action="@mouseover $().remove()">This is Zjax</h1>
     <a href="https://httpbin.org/html" z-swap="p">Fetch Moby Dick</a>
-    <p>This will be replaced by Zjax.</p>
+    <p z-action="@mouseover alert">This will be replaced by Zjax.</p>
   </body>
 </html>
