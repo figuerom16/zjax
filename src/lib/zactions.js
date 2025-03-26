@@ -4,8 +4,8 @@ export function parseZActions(documentOrNode) {
   const zActionNodes = utils.getMatchingNodes(documentOrNode, "[z-action]");
   debug(
     `Found ${zActionNodes.length} z-action nodes in ${utils.prettyNodeName(
-      documentOrNode
-    )}`
+      documentOrNode,
+    )}`,
   );
 
   for (const node of zActionNodes) {
@@ -16,6 +16,8 @@ export function parseZActions(documentOrNode) {
       // Add the action function listener to the node
       const $ = get$(node);
       node.addEventListener(zActionObject.trigger, async function (event) {
+        event.preventDefault();
+        event.stopPropagation();
         try {
           $.event = event;
           const result = await zActionObject.handler($);
@@ -32,7 +34,7 @@ export function parseZActions(documentOrNode) {
           console.error(
             `ZJAX ERROR – Unable to execute z-action: ${error.message}\n`,
             node,
-            error.stack
+            error.stack,
           );
         }
       });
@@ -40,7 +42,7 @@ export function parseZActions(documentOrNode) {
       utils.attachMutationObserver(
         zActionObject.trigger,
         zActionObject.handler,
-        node
+        node,
       );
       if (zActionObject.trigger === "load") {
         node.dispatchEvent(new Event("load"));
@@ -49,13 +51,13 @@ export function parseZActions(documentOrNode) {
       debug(
         `Added z-action for '${
           zActionObject.trigger
-        }' events to ${utils.prettyNodeName(node)}`
+        }' events to ${utils.prettyNodeName(node)}`,
       );
     } catch (error) {
       console.error(
         `ZJAX ERROR – Unable to parse z-action: ${error.message}\n`,
         node,
-        error.stack
+        error.stack,
       );
     }
   }
@@ -72,7 +74,7 @@ function get$(node) {
         const node = document.querySelector(args[0]);
         if (!node) {
           throw new Error(
-            `$('${args[0]}') did not match any elements in the DOM.`
+            `$('${args[0]}') did not match any elements in the DOM.`,
           );
         }
         return node;
@@ -114,9 +116,11 @@ function getZActionObject(ZActionString, node) {
       if (!(actions[nameSpace] && actions[nameSpace][actionName])) {
         throw new Error(`Unknown action: ${nameSpace}.${actionName}`);
       }
+      // Note that the handler needs to be `bind`ed to the namespace object
+      // in order to preserve the `this` context within action functions.
       return {
         trigger,
-        handler: actions[nameSpace][actionName],
+        handler: actions[nameSpace][actionName].bind(actions[nameSpace]),
       };
     }
     // Try to find the action function without namespace.
@@ -126,7 +130,7 @@ function getZActionObject(ZActionString, node) {
       }
       return {
         trigger,
-        handler: actions[actionName],
+        handler: actions[actionName].bind(actions),
       };
     }
   }

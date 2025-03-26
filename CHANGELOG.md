@@ -1,3 +1,7 @@
+## 1.0.37 - 2025-03-26
+- Fixed `this` context in zjax actions by binding the function to the actions object
+- Added preventDefault and stopPropagation to zactions
+
 ## 1.0.36 - 2025-03-24
 - Fixed a regression that broke zjax.actions()
 
