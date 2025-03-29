@@ -12,47 +12,55 @@ export function parseZActions(documentOrNode) {
     try {
       // Get the z-action attribute and parse value into zActionObject
       const zActionString = node.getAttribute("z-action");
-      const zActionObject = getZActionObject(zActionString, node);
-      // Add the action function listener to the node
-      const $ = get$(node);
-      node.addEventListener(zActionObject.trigger, async function (event) {
-        event.preventDefault();
-        event.stopPropagation();
-        try {
-          $.event = event;
-          const result = await zActionObject.handler($);
-          const actionEvent = new CustomEvent("action", {
-            detail: {
-              result: result,
-              event: event,
-            },
-          });
-          if (result) {
-            node.dispatchEvent(actionEvent);
+      // First get an array of objects like:
+      // [
+      //   {
+      //     trigger, 'click',
+      //     handlerString, 'the action text value'
+      //   }
+      // ]
+      const statements = utils.getStatements(zActionString, node.tagName);
+      for (const { trigger, handlerString } of statements) {
+        // Get the trigger and handler string
+        // Get the action function
+        const handlerFunction = getHandlerFunction(handlerString, node);
+        // Add the action function listener to the node
+        const $ = get$(node);
+        node.addEventListener(trigger, async function (event) {
+          event.preventDefault();
+          event.stopPropagation();
+          try {
+            $.event = event;
+            const result = await handlerFunction($);
+            const actionEvent = new CustomEvent("action", {
+              detail: {
+                result: result,
+                event: event,
+              },
+            });
+            if (result) {
+              node.dispatchEvent(actionEvent);
+            }
+          } catch (error) {
+            console.error(
+              `ZJAX ERROR – Unable to execute z-action: ${error.message}\n`,
+              node,
+              error.stack,
+            );
           }
-        } catch (error) {
-          console.error(
-            `ZJAX ERROR – Unable to execute z-action: ${error.message}\n`,
-            node,
-            error.stack,
-          );
+        });
+        // Add a mutation observer to remove the event listener when the node is removed
+        utils.attachMutationObserver(trigger, handlerFunction, node);
+        if (trigger === "load") {
+          node.dispatchEvent(new Event("load"));
         }
-      });
-      // Add a mutation observer to remove the event listener when the node is removed
-      utils.attachMutationObserver(
-        zActionObject.trigger,
-        zActionObject.handler,
-        node,
-      );
-      if (zActionObject.trigger === "load") {
-        node.dispatchEvent(new Event("load"));
-      }
 
-      debug(
-        `Added z-action for '${
-          zActionObject.trigger
-        }' events to ${utils.prettyNodeName(node)}`,
-      );
+        debug(
+          `Added z-action for '${
+            trigger
+          }' events to ${utils.prettyNodeName(node)}`,
+        );
+      }
     } catch (error) {
       console.error(
         `ZJAX ERROR – Unable to parse z-action: ${error.message}\n`,
@@ -94,19 +102,11 @@ function get$(node) {
   });
 }
 
-function getZActionObject(ZActionString, node) {
-  // Use regex to get trigger and rest of the value.
-  const actionMatch = ZActionString.match(/^\s*(?:@(\w+))?\s*(.*)/);
-  if (!actionMatch) {
-    throw new Error("z-action value is invalid.");
-  }
-  let trigger = actionMatch[1];
-  if (!trigger) {
-    trigger = node.tagName === "FORM" ? "submit" : "click";
-  }
-  const functionText = actionMatch[2];
+function getHandlerFunction(functionText, node) {
+  // Does the function text look like a function name possibly namespaced?
   const actionNameMatch = functionText.match(/^(?:(\w+)\.)?(\w+)$/);
-  // Try to find the action function on the zjax.userActions object.
+
+  // If so, try to find the action function on the zjax.userActions object.
   if (actionNameMatch) {
     const nameSpace = actionNameMatch[1];
     const actionName = actionNameMatch[2];
@@ -118,29 +118,19 @@ function getZActionObject(ZActionString, node) {
       }
       // Note that the handler needs to be `bind`ed to the namespace object
       // in order to preserve the `this` context within action functions.
-      return {
-        trigger,
-        handler: actions[nameSpace][actionName].bind(actions[nameSpace]),
-      };
-    }
-    // Try to find the action function without namespace.
-    else {
+      return actions[nameSpace][actionName].bind(actions[nameSpace]);
+    } else {
+      // Try to find the action function without namespace.
       if (!actions[actionName]) {
         throw new Error(`Unknown action: ${actionName}`);
       }
-      return {
-        trigger,
-        handler: actions[actionName].bind(actions),
-      };
+      return actions[actionName].bind(actions);
     }
   }
 
-  // If no action name was found, try running the string as a Function.
+  // If no action name was found, try a custom Function for the string.
   try {
-    return {
-      trigger,
-      handler: new Function("$", functionText),
-    };
+    return new Function("$", functionText);
   } catch (error) {
     throw new Error(`z-action value is invalid: ${error.message}`);
   }

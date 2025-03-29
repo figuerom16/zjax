@@ -1,3 +1,7 @@
+## 1.0.38 - 2025-03-29
+- Added ability for multiple "statements" separated by comma (z-actions only)
+- Added ability for multiple triggers like @[click,mouseover]
+
 ## 1.0.37 - 2025-03-26
 - Fixed `this` context in zjax actions by binding the function to the actions object
 - Added preventDefault and stopPropagation to zactions
