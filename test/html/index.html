@@ -3,19 +3,19 @@
   <head>
     <link rel="stylesheet" href="https://cdn.simplecss.org/simple.min.css" />
     <script src="/zjax.min.js"></script>
-    <!-- <script src="https://unpkg.com/zjax@1.0.30"></script> -->
+    <!-- <script src="//unpkg.com/zjax"></script> -->
     <script>
       zjax.debug = true;
 
       zjax.actions({
         alert() {
-          alert("Hello, Monkey!");
+          console.log("Hello, Monkey!");
         },
       });
     </script>
   </head>
 
-  <body>
+  <body z-data="{ foo: 'bar' }">
     <form action="./submit" z-swap="*">
       <input type="text" name="name" />
       <input type="text" name="phone" />
@@ -24,7 +24,8 @@
 
     <a z-swap="POST ./submit h1">MAKE ERROR</a>
 
-    <h1 z-action="@click $().remove(), @mouseout alert">This is Zjax</h1>
+    <!-- <h1 z-action="@click $().remove(), @mouseout alert">This is Zjax</h1> -->
+    <h1 z-swap="@load /other.html h1">Index</h1>
     <a href="https://httpbin.org/html" z-swap="p">Fetch Moby Dick</a>
     <p z-action="@click alert">This will be replaced by Zjax.</p>
   </body>

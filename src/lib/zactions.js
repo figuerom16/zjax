@@ -2,15 +2,10 @@ import { debug, utils } from "../lib.js";
 
 export function parseZActions(documentOrNode) {
   const zActionNodes = utils.getMatchingNodes(documentOrNode, "[z-action]");
-  debug(
-    `Found ${zActionNodes.length} z-action nodes in ${utils.prettyNodeName(
-      documentOrNode,
-    )}`,
-  );
+  debug(`Found ${zActionNodes.length} z-action nodes in ${utils.prettyNodeName(documentOrNode)}`);
 
   for (const node of zActionNodes) {
     try {
-      // Get the z-action attribute and parse value into zActionObject
       const zActionString = node.getAttribute("z-action");
       // First get an array of objects like:
       // [
@@ -55,18 +50,10 @@ export function parseZActions(documentOrNode) {
           node.dispatchEvent(new Event("load"));
         }
 
-        debug(
-          `Added z-action for '${
-            trigger
-          }' events to ${utils.prettyNodeName(node)}`,
-        );
+        debug(`Added z-action for '${trigger}' events to ${utils.prettyNodeName(node)}`);
       }
     } catch (error) {
-      console.error(
-        `ZJAX ERROR – Unable to parse z-action: ${error.message}\n`,
-        node,
-        error.stack,
-      );
+      console.error(`ZJAX ERROR – Unable to parse z-action: ${error.message}\n`, node, error.stack);
     }
   }
 }
@@ -81,9 +68,7 @@ function get$(node) {
       if (args.length === 1) {
         const node = document.querySelector(args[0]);
         if (!node) {
-          throw new Error(
-            `$('${args[0]}') did not match any elements in the DOM.`,
-          );
+          throw new Error(`$('${args[0]}') did not match any elements in the DOM.`);
         }
         return node;
       }

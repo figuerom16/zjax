@@ -3,49 +3,48 @@ import { constants, debug, utils, parseZActions } from "../lib.js";
 export async function parseZSwaps(documentOrNode) {
   // Find all nodes with a z-swap attribute
   const zSwapNodes = utils.getMatchingNodes(documentOrNode, "[z-swap]");
-  debug(
-    `Found ${zSwapNodes.length} z-swap nodes in ${utils.prettyNodeName(
-      documentOrNode,
-    )}`,
-  );
+  debug(`Found ${zSwapNodes.length} z-swap nodes in ${utils.prettyNodeName(documentOrNode)}`);
 
   for (const node of zSwapNodes) {
     try {
-      // Get the z-swap attribute and parse value into zSwapObject
       const zSwapString = node.getAttribute("z-swap");
-      const zSwapObject = getZSwapObject(zSwapString, node);
-      // Add the swap function listener to the node
-      const zSwapFunction = getZSwapFunction(zSwapObject, node);
+      // First get an array of objects like:
+      // [
+      //   {
+      //     trigger, 'click',
+      //     handlerString, 'the action text value'
+      //   }
+      // ]
+      //
+      const statements = utils.getStatements(zSwapString, node.tagName);
 
-      // Special case: 'load' trigger should be converted from standard DOM load event
-      //  to 'zjax:load' which will be fired whenever this element is loaded into the DOM.
-      const trigger =
-        zSwapObject.trigger === "load" ? "zjax:load" : zSwapObject.trigger;
+      for (const { trigger, handlerString } of statements) {
+        const zSwapObject = getZSwapObject(trigger, handlerString, node);
 
-      node.addEventListener(trigger, zSwapFunction);
-      // Add a mutation observer to remove the event listener when the node is removed
-      utils.attachMutationObserver(trigger, zSwapFunction, node);
-      if (trigger === "zjax:load") {
-        node.dispatchEvent(new CustomEvent("zjax:load"));
+        // Add the swap function listener to the node
+        const zSwapFunction = getZSwapFunction(zSwapObject, node);
+
+        // Special case: 'load' trigger should be converted from standard DOM load event
+        //  to 'zjax:load' which will be fired whenever this element is loaded into the DOM.
+        zSwapObject.trigger = zSwapObject.trigger === "load" ? "zjax:load" : zSwapObject.trigger;
+        node.addEventListener(zSwapObject.trigger, zSwapFunction);
+
+        // Add a mutation observer to remove the event listener when the node is removed
+        utils.attachMutationObserver(zSwapObject.trigger, zSwapFunction, node);
+        if (trigger === "zjax:load") {
+          node.dispatchEvent(new CustomEvent("zjax:load"));
+        }
+
+        debug(`Added z-swap for '${zSwapObject.trigger}' events to ${utils.prettyNodeName(node)}`);
       }
-
-      debug(
-        `Added z-swap for '${
-          zSwapObject.trigger
-        }' events to ${utils.prettyNodeName(node)}`,
-      );
     } catch (error) {
-      console.error(
-        `ZJAX ERROR – Unable to parse z-swap: ${error.message}\n`,
-        node,
-        error.stack,
-      );
+      console.error(`ZJAX ERROR – Unable to parse z-swap: ${error.message}\n`, node, error.stack);
     }
   }
 }
 
-function getZSwapObject(zSwapString, node) {
-  const valueString = collapseCommas(zSwapString);
+function getZSwapObject(trigger, handlerString, node) {
+  const valueString = collapseCommas(handlerString);
   // Split on whitespace
   const valueParts = valueString.split(/\s/);
   if (valueParts.length < 1 || valueParts.length > 4) {
@@ -53,12 +52,14 @@ function getZSwapObject(zSwapString, node) {
   }
 
   // Loop through space-separated parts of the z-swap attribute to build the zSwapObject object
-  const zSwapObject = {};
+  const zSwapObject = {
+    trigger: trigger,
+  };
   const leftoverParts = [];
 
   while (valueParts.length > 0) {
     const part = valueParts.shift();
-    const typeAndValue = getTriggerMethodOrEndpointPair(part);
+    const typeAndValue = getMethodOrEndpointPair(part);
     if (typeAndValue) {
       zSwapObject[typeAndValue[0]] = typeAndValue[1];
     } else {
@@ -69,10 +70,7 @@ function getZSwapObject(zSwapString, node) {
   // Add the array of swaps
   zSwapObject.swaps = getSwaps(leftoverParts.join(" "));
 
-  // Now set defaults for missing values.
-  if (!zSwapObject.trigger) {
-    zSwapObject.trigger = node.tagName === "FORM" ? "submit" : "click";
-  }
+  // Now set defaults for missing values
   if (!zSwapObject.method) {
     zSwapObject.method = node.tagName === "FORM" ? "POST" : "GET";
   }
@@ -86,18 +84,10 @@ function getZSwapObject(zSwapString, node) {
     }
   }
 
-  // Special case: @submit trigger only valid on FORM elements
-  if (zSwapObject.trigger === "submit" && node.tagName !== "FORM") {
-    throw new Error("@submit trigger is only available on <FORM> elements");
-  }
   return zSwapObject;
 }
 
-function getTriggerMethodOrEndpointPair(swapSpecifier) {
-  // Is this a Trigger?
-  if (swapSpecifier.startsWith("@")) {
-    return ["trigger", swapSpecifier.substr(1)];
-  }
+function getMethodOrEndpointPair(swapSpecifier) {
   // Is this an HTTP Method?
   if (constants.httpMethods.includes(swapSpecifier.toUpperCase())) {
     return ["method", swapSpecifier.toUpperCase()];
@@ -123,18 +113,13 @@ function getSwaps(zSwapString) {
     const targetNodeAndSwapType = responseAndTargetSwaps.pop();
     const [targetNode, swapType] = targetNodeAndSwapType.split("|");
     const responseNodeAndResponseType = responseAndTargetSwaps[0] || "";
-    const [responseNode, responseType] = responseNodeAndResponseType?.split(
-      "|",
-    ) || [null, null];
+    const [responseNode, responseType] = responseNodeAndResponseType?.split("|") || [null, null];
     swap.response = responseNode || targetNode;
     swap.target = targetNode;
     swap.responseType = responseType?.trim() || "outer";
     swap.swapType = swapType?.trim() || "outer";
     // Only allow valid Response Types
-    if (
-      swap.responseType &&
-      !constants.responseTypes.includes(swap.responseType)
-    ) {
+    if (swap.responseType && !constants.responseTypes.includes(swap.responseType)) {
       throw new Error(`Invalid swap type: ${swap.responseType}`);
     }
     // Only allow valid Swap Types
@@ -159,8 +144,7 @@ function getZSwapFunction(zSwap, node) {
 
     event.preventDefault();
     event.stopPropagation();
-    const formData =
-      (node.tagName === "FORM" && new FormData(event.target)) || null;
+    const formData = (node.tagName === "FORM" && new FormData(event.target)) || null;
     zSwap.formData = formData ? convertFormDataToString(formData) : null;
     debug("z-swap triggered for", zSwap);
 
@@ -178,11 +162,7 @@ function getZSwapFunction(zSwap, node) {
       document.dispatchEvent(requestEvent);
 
       // Call the action
-      const responseDOM = await getResponseDOM(
-        zSwap.method,
-        zSwap.endpoint,
-        zSwap.formData,
-      );
+      const responseDOM = await getResponseDOM(zSwap.method, zSwap.endpoint, zSwap.formData);
 
       const responseDOMToLog = responseDOM.body || responseDOM.documentElement;
       const responseEvent = new CustomEvent("zjax:response", {
@@ -199,10 +179,7 @@ function getZSwapFunction(zSwap, node) {
           swappingEl.classList.add("zjax-swapping");
         }
         // Get the source and target nodes
-        const [responseNode, targetNode] = getResponseAndTargetNodes(
-          responseDOM,
-          swap,
-        );
+        const [responseNode, targetNode] = getResponseAndTargetNodes(responseDOM, swap);
         // Before swapping in a response node, parse it for z-swaps
         debug("Parsing incoming response for z-swaps");
         if (responseNode) {
@@ -214,20 +191,10 @@ function getZSwapFunction(zSwap, node) {
         // Swap the node using a view transition?
         if (constants.isVTSupported && zjax.transitions) {
           document.startViewTransition(() => {
-            swapOneNode(
-              targetNode,
-              responseNode,
-              swap.swapType,
-              swap.responseType,
-            );
+            swapOneNode(targetNode, responseNode, swap.swapType, swap.responseType);
           });
         } else {
-          swapOneNode(
-            targetNode,
-            responseNode,
-            swap.swapType,
-            swap.responseType,
-          );
+          swapOneNode(targetNode, responseNode, swap.swapType, swap.responseType);
         }
       }
 
@@ -257,17 +224,12 @@ async function getResponseDOM(method, endpoint, formData) {
     },
   });
   if (!response.ok) {
-    throw new Error(
-      `${response.status} ${response.statusText} for ${endpoint}`,
-    );
+    throw new Error(`${response.status} ${response.statusText} for ${endpoint}`);
     // Todo: Think of some way to let the developer handle
     // this error to show a message to the useras an alert
     // notice. Maybe just trigger a zjax-error event?
   }
-  const responseDOM = new DOMParser().parseFromString(
-    await response.text(),
-    "text/html",
-  );
+  const responseDOM = new DOMParser().parseFromString(await response.text(), "text/html");
   debug(`z-swap response from ${endpoint} received and parsed`);
   return responseDOM;
 }
@@ -287,9 +249,7 @@ function getResponseAndTargetNodes(responseDOM, swap) {
   }
 
   const responseNode =
-    swap.response === "*"
-      ? responseDOM
-      : responseDOM.querySelector(swap.response);
+    swap.response === "*" ? responseDOM : responseDOM.querySelector(swap.response);
 
   // Make sure there's a valid target node for all swap types except "none"
   if (!targetNode && swap.swapType !== "none") {
@@ -298,18 +258,13 @@ function getResponseAndTargetNodes(responseDOM, swap) {
 
   // Make sure there's a valid response node for all swap types except "none" or "delete"
   if (!responseNode && swap.swapType !== "none" && swap.swapType !== "delete") {
-    throw new Error(
-      `Source node ${swap.response} does not exist in response DOM`,
-    );
+    throw new Error(`Source node ${swap.response} does not exist in response DOM`);
   }
 
   return [responseNode, targetNode];
 }
 
-function getMutatedResponseNodeAndAttributesToUpdateMap(
-  targetNode,
-  responseNode,
-) {
+function getMutatedResponseNodeAndAttributesToUpdateMap(targetNode, responseNode) {
   // Return the mutated responseNode and an attributesToUpdate object for later use.
   // The mutated responseNode retains most attributes from the targetNode for any
   // nodes with an id matching both target and response.
@@ -317,10 +272,7 @@ function getMutatedResponseNodeAndAttributesToUpdateMap(
 
   // First, check the parent node for an id present in both the target and
   // response.
-  const targetNodesWithIds = querySelectorAllIncludingParent(
-    targetNode,
-    "[id]",
-  );
+  const targetNodesWithIds = querySelectorAllIncludingParent(targetNode, "[id]");
 
   for (const targetNodeWithId of targetNodesWithIds) {
     const responseNodeWithMatchingId = querySelectorIncludingParent(
@@ -341,13 +293,14 @@ function getMutatedResponseNodeAndAttributesToUpdateMap(
 
 function swapOneNode(targetNode, responseNode, swapType, responseType) {
   // If responseType is "inner", get the childNodes
-  responseNode =
-    responseType === "inner" ? responseNode.childNodes : responseNode;
+  responseNode = responseType === "inner" ? responseNode.childNodes : responseNode;
 
   // Get the mutated responseNode and attributesToUpdateMap for later use.
   let attributesToUpdateMap;
-  [responseNode, attributesToUpdateMap] =
-    getMutatedResponseNodeAndAttributesToUpdateMap(targetNode, responseNode);
+  [responseNode, attributesToUpdateMap] = getMutatedResponseNodeAndAttributesToUpdateMap(
+    targetNode,
+    responseNode,
+  );
 
   // Since a responseNode might be a single node or a whole document (which may just contain
   // a handful of nodes), let's just normalize all responseNodes to be an array.
@@ -483,10 +436,7 @@ function removeAttributes(node) {
 async function updateAttributes(outerNode, attributesToUpdateMap) {
   setTimeout(() => {
     for (const [id, attributes] of Object.entries(attributesToUpdateMap)) {
-      const nodeWithId = querySelectorIncludingParent(
-        outerNode,
-        `[id="${id}"]`,
-      );
+      const nodeWithId = querySelectorIncludingParent(outerNode, `[id="${id}"]`);
       if (nodeWithId) {
         removeAttributes(nodeWithId);
         setAttributes(nodeWithId, attributes);

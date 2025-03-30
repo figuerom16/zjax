@@ -1,3 +1,6 @@
+## 1.0.39 - 2025-03-30
+- Multiple triggers and multiple statements now supported for both z-swaps and z-actions
+
 ## 1.0.38 - 2025-03-29
 - Added ability for multiple "statements" separated by comma (z-actions only)
 - Added ability for multiple triggers like @[click,mouseover]
