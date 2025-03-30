@@ -9,7 +9,7 @@
 
       zjax.actions({
         alert() {
-          console.log("Hello, Monkey!");
+          alert("Hello, Monkey!");
         },
       });
     </script>
@@ -17,7 +17,7 @@
 
   <body z-data="{ foo: 'bar' }">
     <form action="./submit" z-swap="*">
-      <input type="text" name="name" />
+      <input type="text" name="name" z-action="@keydown alert('hola')" />
       <input type="text" name="phone" />
       <button type="submit">Go</button>
     </form>
@@ -25,8 +25,8 @@
     <a z-swap="POST ./submit h1">MAKE ERROR</a>
 
     <!-- <h1 z-action="@click $().remove(), @mouseout alert">This is Zjax</h1> -->
-    <h1 z-swap="@load /other.html h1">Index</h1>
+    <h1 z-swap="@click /other.html h1">Index</h1>
     <a href="https://httpbin.org/html" z-swap="p">Fetch Moby Dick</a>
-    <p z-action="@click alert">This will be replaced by Zjax.</p>
+    <p z-action="@mouseout alert">This will be replaced by Zjax.</p>
   </body>
 </html>

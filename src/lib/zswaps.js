@@ -18,7 +18,7 @@ export async function parseZSwaps(documentOrNode) {
       //
       const statements = utils.getStatements(zSwapString, node.tagName);
 
-      for (const { trigger, handlerString } of statements) {
+      for (const { trigger, modifiers, handlerString } of statements) {
         const zSwapObject = getZSwapObject(trigger, handlerString, node);
 
         // Add the swap function listener to the node

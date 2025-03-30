@@ -15,7 +15,7 @@ export function parseZActions(documentOrNode) {
       //   }
       // ]
       const statements = utils.getStatements(zActionString, node.tagName);
-      for (const { trigger, handlerString } of statements) {
+      for (const { trigger, modifiers, handlerString } of statements) {
         // Get the trigger and handler string
         // Get the action function
         const handlerFunction = getHandlerFunction(handlerString, node);
