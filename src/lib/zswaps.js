@@ -12,6 +12,7 @@ export async function parseZSwaps(documentOrNode) {
       // [
       //   {
       //     trigger, 'click',
+      //     modifiers, { outside: true, shift: true },
       //     handlerString, 'the action text value'
       //   }
       // ]

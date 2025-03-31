@@ -1,4 +1,4 @@
-import { debug, utils } from "../lib.js";
+import { debug, utils, constants } from "../lib.js";
 
 export function parseZActions(documentOrNode) {
   const zActionNodes = utils.getMatchingNodes(documentOrNode, "[z-action]");
@@ -11,6 +11,7 @@ export function parseZActions(documentOrNode) {
       // [
       //   {
       //     trigger, 'click',
+      //     modifiers, { outside: true, shift: true },
       //     handlerString, 'the action text value'
       //   }
       // ]
@@ -20,30 +21,60 @@ export function parseZActions(documentOrNode) {
         // Get the action function
         const handlerFunction = getHandlerFunction(handlerString, node);
         // Add the action function listener to the node
-        const $ = get$(node);
-        node.addEventListener(trigger, async function (event) {
-          event.preventDefault();
-          event.stopPropagation();
-          try {
-            $.event = event;
-            const result = await handlerFunction($);
-            const actionEvent = new CustomEvent("action", {
-              detail: {
-                result: result,
-                event: event,
-              },
-            });
-            if (result) {
-              node.dispatchEvent(actionEvent);
+        const targetForListener = utils.getDocumentOrWindow(modifiers) || node;
+
+        targetForListener.addEventListener(trigger, async function (event) {
+          // Check for key modifiers?
+          if (constants.keyboardEvents.includes(trigger)) {
+            if (modifiers.shift && !event.shiftKey) return;
+            if (modifiers.ctrl && !event.ctrlKey) return;
+            if (modifiers.alt && !event.altKey) return;
+            if (modifiers.meta && !event.metaKey) return;
+            if (modifiers.keyName && event.key !== modifiers.keyName) return;
+          }
+
+          // Check for mouse modifiers?
+          if (constants.mouseEvents.includes(trigger)) {
+            if (modifiers.shift && !event.shiftKey) return;
+            if (modifiers.ctrl && !event.ctrlKey) return;
+            if (modifiers.alt && !event.altKey) return;
+            if (modifiers.meta && !event.metaKey) return;
+          }
+
+          // Prevent default or stop propagation?
+          if (modifiers.prevent) event.preventDefault();
+          if (modifiers.stop) event.stopPropagation();
+
+          // Check for outside modifier?
+          if (modifiers.outside) {
+            if (node.contains(event.target)) return;
+          }
+
+          // Check for once modifier?
+          if (node.hasFiredOnce) return;
+          if (modifiers.once) {
+            node.hasFiredOnce = true;
+          }
+
+          // Check for timer modifiers?
+          if (modifiers.delay) {
+            await utils.sleep(modifiers.delay);
+          }
+
+          // Check for debounce modifiers?
+          if (modifiers.debounce) {
+            if (node.debounceTimeout) {
+              clearTimeout(node.debounceTimeout);
             }
-          } catch (error) {
-            console.error(
-              `ZJAX ERROR – Unable to execute z-action: ${error.message}\n`,
-              node,
-              error.stack,
-            );
+            node.debounceTimeout = setTimeout(async () => {
+              delete node.debounceTimeout;
+              await executeHandlerFunction(node, event, handlerFunction);
+            }, modifiers.debounce);
+          } else {
+            await executeHandlerFunction(node, event, handlerFunction);
           }
         });
+
         // Add a mutation observer to remove the event listener when the node is removed
         utils.attachMutationObserver(trigger, handlerFunction, node);
         if (trigger === "load") {
@@ -55,6 +86,26 @@ export function parseZActions(documentOrNode) {
     } catch (error) {
       console.error(`ZJAX ERROR – Unable to parse z-action: ${error.message}\n`, node, error.stack);
     }
+  }
+}
+
+async function executeHandlerFunction(node, event, handlerFunction) {
+  try {
+    const $ = get$(node);
+    $.event = event;
+    const result = await handlerFunction($);
+
+    const actionEvent = new CustomEvent("action", {
+      detail: {
+        result: result,
+        event: event,
+      },
+    });
+    if (result) {
+      node.dispatchEvent(actionEvent);
+    }
+  } catch (error) {
+    console.error(`ZJAX ERROR – Unable to execute z-action: ${error.message}\n`, node, error.stack);
   }
 }
 

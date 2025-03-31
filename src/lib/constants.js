@@ -16,7 +16,7 @@ export const attrsToNotFreeze = ["id", "z-swap", "z-action", "z-confirm", "z-act
 
 export const globalTriggerModifiers = ["document", "window", "once", "prevent", "stop"];
 
-export const timerTriggerModifiers = ["delay", "debounce", "throttle"];
+export const timerTriggerModifiers = ["delay", "debounce"];
 
 export const mouseEvents = [
   "click",
@@ -34,6 +34,6 @@ export const mouseEvents = [
 
 export const mouseTriggerModifiers = ["outside", "ctrl", "shift", "alt", "cmd", "meta"];
 
-export const keyboardEvents = ["keydown", "keyup", "keypress", "input", "change", "focus", "blur"];
+export const keyboardEvents = ["keydown", "keyup", "keypress"];
 
 export const keyboardTriggerModifiers = ["keyName", "shift", "alt", "ctrl", "meta", "cmd"];

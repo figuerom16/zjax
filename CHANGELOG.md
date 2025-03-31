@@ -1,3 +1,9 @@
+## 1.0.40 - 2025-03-31
+- Added multiple trigger modifiers for Z-Actions:
+- click.document, click.window, click.outside, click.once, click.prevent, click.stop (not only for click)
+- click.delay.2s, input.debounce.200ms (again, this is for all events)
+- key event modifiers like keydown.meta.p
+
 ## 1.0.39 - 2025-03-30
 - Multiple triggers and multiple statements now supported for both z-swaps and z-actions
 

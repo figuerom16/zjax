@@ -85,10 +85,10 @@ function getTriggers(triggerString, tagName) {
 // Private
 function getTriggerObject(triggerStringPart) {
   // Split a string like "click.outside.once" to get the trigger and modifiers
-  const modifiers = triggerStringPart.split(".");
+  const triggerStringParts = triggerStringPart.split(".");
 
   // The first part is the trigger and the rest are modifiers
-  const trigger = modifiers.shift();
+  const trigger = triggerStringParts.shift();
 
   // We need to know if this is a keyboard or mouse event since those have special modifiers.
   const isMouseEvent = constants.mouseEvents.includes(trigger);
@@ -102,38 +102,39 @@ function getTriggerObject(triggerStringPart) {
   // So, we're start by setting the nextKey to "keyName" and then we'll set it to null after we've
   // either set the keyName or reached a known modifer that isn't a global trigger modifier or a
   // keyboard trigger modifier.
+  const modifiers = {};
   let nextKey = isKeyboardEvent ? "keyName" : null;
-  for (const modifier of modifiers) {
-    previousModifier = modifier;
+  for (const part of triggerStringParts) {
+    previousModifier = part;
 
     // Is this a global trigger modifier?
-    if (constants.globalTriggerModifiers.includes(modifier)) {
-      modifiers[modifier] = true;
+    if (constants.globalTriggerModifiers.includes(part)) {
+      modifiers[part] = true;
       continue;
     }
 
     // Is this a mouse trigger modifier?
-    if (isMouseEvent && constants.mouseTriggerModifiers.includes(modifier)) {
-      modifiers[modifier] = true;
+    if (isMouseEvent && constants.mouseTriggerModifiers.includes(part)) {
+      modifiers[part] = true;
       continue;
     }
 
     // Is this a boolean keyboard trigger modifier?
-    if (isKeyboardEvent && constants.keyboardTriggerModifiers.includes(modifier)) {
-      modifiers[modifier] = true;
+    if (isKeyboardEvent && constants.keyboardTriggerModifiers.includes(part)) {
+      modifiers[part] = true;
       continue;
     }
 
     // Since we haven't matched anything yet, maybe this is the keyName for a keyboard event?
     if (isKeyboardEvent && nextKey === "keyName") {
-      modifiers[nextKey] = modifier;
+      modifiers[nextKey] = part;
       nextKey = null;
       continue;
     }
 
     // Is this a timer trigger modifier?
-    if (constants.timerTriggerModifiers.includes(modifier)) {
-      nextKey = modifier;
+    if (constants.timerTriggerModifiers.includes(part)) {
+      nextKey = part;
       continue;
     }
 
@@ -141,10 +142,10 @@ function getTriggerObject(triggerStringPart) {
     if (nextKey) {
       // Is this a timer trigger value?
       if (constants.timerTriggerModifiers.includes(nextKey)) {
-        const isSeconds = modifier.match(/\d+s/);
-        const isMilliseconds = modifier.match(/\d+ms/);
+        const isSeconds = part.match(/\d+s/);
+        const isMilliseconds = part.match(/\d+ms/);
         if (!isSeconds && !isMilliseconds) {
-          throw new Error(`Invalid timer value: ${modifier}`);
+          throw new Error(`Invalid timer value: ${part}`);
         }
         // Set value like { debounce: 500 }
         modifiers[nextKey] = isSeconds
@@ -156,13 +157,23 @@ function getTriggerObject(triggerStringPart) {
     }
 
     // If we've reached this point, we don't know what to do with this modifier.
-    throw new Error(`Unknown trigger modifier in this context: ${modifier}`);
+    throw new Error(`Unknown trigger modifier in this context: ${part}`);
   }
 
   return {
     trigger,
     modifiers,
   };
+}
+
+export function getDocumentOrWindow(modifiers) {
+  if (modifiers.document) return document;
+  if (modifiers.window || modifiers.outside) return window;
+  return null;
+}
+
+export async function sleep(ms) {
+  await new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 export function prettyNodeName(documentOrNode) {
