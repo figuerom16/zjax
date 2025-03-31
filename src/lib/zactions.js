@@ -24,54 +24,19 @@ export function parseZActions(documentOrNode) {
         const targetForListener = utils.getDocumentOrWindow(modifiers) || node;
 
         targetForListener.addEventListener(trigger, async function (event) {
-          // Check for key modifiers?
-          if (constants.keyboardEvents.includes(trigger)) {
-            if (modifiers.shift && !event.shiftKey) return;
-            if (modifiers.ctrl && !event.ctrlKey) return;
-            if (modifiers.alt && !event.altKey) return;
-            if (modifiers.meta && !event.metaKey) return;
-            if (modifiers.keyName && event.key !== modifiers.keyName) return;
-          }
+          // Process modifiers
+          const triggerObject = { trigger, modifiers, node, event };
+          if (!utils.processKeyboardModifiers(triggerObject)) return;
+          if (!utils.processMouseModifiers(triggerObject)) return;
+          if (!utils.processOutsideModifiers(triggerObject)) return;
+          if (!utils.processPreventOrStopModifiers(triggerObject)) return;
+          if (!(await utils.processDelayModifiers(triggerObject))) return;
 
-          // Check for mouse modifiers?
-          if (constants.mouseEvents.includes(trigger)) {
-            if (modifiers.shift && !event.shiftKey) return;
-            if (modifiers.ctrl && !event.ctrlKey) return;
-            if (modifiers.alt && !event.altKey) return;
-            if (modifiers.meta && !event.metaKey) return;
-          }
-
-          // Prevent default or stop propagation?
-          if (modifiers.prevent) event.preventDefault();
-          if (modifiers.stop) event.stopPropagation();
-
-          // Check for outside modifier?
-          if (modifiers.outside) {
-            if (node.contains(event.target)) return;
-          }
-
-          // Check for once modifier?
-          if (node.hasFiredOnce) return;
-          if (modifiers.once) {
-            node.hasFiredOnce = true;
-          }
-
-          // Check for timer modifiers?
-          if (modifiers.delay) {
-            await utils.sleep(modifiers.delay);
-          }
-
-          // Check for debounce modifiers?
           if (modifiers.debounce) {
-            if (node.debounceTimeout) {
-              clearTimeout(node.debounceTimeout);
-            }
-            node.debounceTimeout = setTimeout(async () => {
-              delete node.debounceTimeout;
-              await executeHandlerFunction(node, event, handlerFunction);
-            }, modifiers.debounce);
+            const debouncedHandler = utils.debounce(handlerFunctionWithEvent, modifiers.debounce);
+            await debouncedHandler(node, event, handlerFunction);
           } else {
-            await executeHandlerFunction(node, event, handlerFunction);
+            await handlerFunctionWithEvent(node, event, handlerFunction);
           }
         });
 
@@ -89,7 +54,7 @@ export function parseZActions(documentOrNode) {
   }
 }
 
-async function executeHandlerFunction(node, event, handlerFunction) {
+async function handlerFunctionWithEvent(node, event, handlerFunction) {
   try {
     const $ = get$(node);
     $.event = event;
