@@ -32,8 +32,8 @@ export const mouseEvents = [
   "context",
 ];
 
-export const mouseTriggerModifiers = ["outside", "ctrl", "shift", "alt", "meta"];
+export const mouseTriggerModifiers = ["ctrl", "shift", "alt", "meta"];
 
 export const keyboardEvents = ["keydown", "keyup"];
 
-export const keyboardTriggerModifiers = ["keyName", "shift", "ctrl", "alt", "meta"];
+export const keyboardTriggerModifiers = ["keyName", "ctrl", "shift", "alt", "meta"];

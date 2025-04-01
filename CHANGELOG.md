@@ -1,3 +1,6 @@
+## 1.0.41 - 2025-04-01
+- Full support for trigger modifiers on both z-swaps and z-actions
+
 ## 1.0.40 - 2025-03-31
 - Added multiple trigger modifiers for Z-Actions:
 - click.document, click.window, click.outside, click.once, click.prevent, click.stop (not only for click)
