@@ -196,7 +196,9 @@ function getTriggers(triggerString, tagName) {
 
   // Return default?
   if (!triggerString) {
-    return tagName === "FORM" ? [{ trigger: "submit" }] : [{ trigger: "click" }];
+    return tagName === "FORM"
+      ? [{ trigger: "submit", modifiers: {} }]
+      : [{ trigger: "click", modifiers: {} }];
   }
 
   const triggers = [];

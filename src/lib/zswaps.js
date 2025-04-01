@@ -21,14 +21,26 @@ export async function parseZSwaps(documentOrNode) {
 
       for (const { trigger, modifiers, handlerString } of statements) {
         const zSwapObject = getZSwapObject(trigger, handlerString, node);
-
         // Add the swap function listener to the node
         const zSwapFunction = getZSwapFunction(zSwapObject, node);
 
-        // Special case: 'load' trigger should be converted from standard DOM load event
-        //  to 'zjax:load' which will be fired whenever this element is loaded into the DOM.
-        zSwapObject.trigger = zSwapObject.trigger === "load" ? "zjax:load" : zSwapObject.trigger;
-        node.addEventListener(zSwapObject.trigger, zSwapFunction);
+        const targetForListener = utils.getDocumentOrWindow(modifiers) || node;
+        targetForListener.addEventListener(trigger, async function (event) {
+          // Process modifiers
+          const triggerObject = { trigger, modifiers, node, event };
+          if (!utils.processKeyboardModifiers(triggerObject)) return;
+          if (!utils.processMouseModifiers(triggerObject)) return;
+          if (!utils.processOutsideModifiers(triggerObject)) return;
+          if (!utils.processPreventOrStopModifiers(triggerObject)) return;
+          if (!(await utils.processDelayModifiers(triggerObject))) return;
+
+          if (modifiers.debounce) {
+            const debouncedHandler = utils.debounce(zSwapFunction, modifiers.debounce);
+            await debouncedHandler(event);
+          } else {
+            await zSwapFunction(event);
+          }
+        });
 
         // Add a mutation observer to remove the event listener when the node is removed
         utils.attachMutationObserver(zSwapObject.trigger, zSwapFunction, node);

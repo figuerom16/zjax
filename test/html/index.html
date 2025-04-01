@@ -1,7 +1,8 @@
 <!doctype html>
 <html>
   <head>
-    <link rel="stylesheet" href="https://cdn.simplecss.org/simple.min.css" />
+    <!-- <link rel="stylesheet" href="https://cdn.simplecss.org/simple.min.css" /> -->
+    <link rel="stylesheet" href="/style.css" />
     <script src="/zjax.min.js"></script>
     <!-- <script src="//unpkg.com/zjax"></script> -->
     <script>
@@ -17,16 +18,13 @@
 
   <body>
     <form action="./submit" z-swap="*">
-      <input type="text" name="name" z-action="@input.debounce.1000ms $('h1').innerText = $().value" />
+      <input type="text" name="name" z-action="@input $('h1').innerText = $().value" />
       <input id="phone" type="text" name="phone" />
       <button type="submit">Go</button>
     </form>
-    <button z-action="@keydown.prevent.window.meta.p console.log('action!')">log</button>
 
-    <a z-swap="POST ./submit h1">MAKE ERROR</a>
-
-    <!-- <h1 z-action="@click $().remove(), @mouseout console.log('commented.')">This is Zjax</h1> -->
-    <h1 z-swap="@click /other.html h1">Index</h1>
+    <h1 z-action="@click $().remove()">This is Zjax</h1>
+    <h1 z-swap="@click.outside.delay.1s /other.html h1">Index</h1>
     <a href="https://httpbin.org/html" z-swap="p">Fetch Moby Dick</a>
     <p z-action="@keydown.window.meta.p.prevent.delay.2s alert">This will be replaced by Zjax.</p>
   </body>
