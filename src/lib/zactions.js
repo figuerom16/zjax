@@ -26,9 +26,11 @@ export function parseZActions(documentOrNode) {
         targetForListener.addEventListener(trigger, async function (event) {
           // Process modifiers
           const triggerObject = { trigger, modifiers, node, event };
+          // console.log("triggerObject", triggerObject);
           if (!utils.processKeyboardModifiers(triggerObject)) return;
           if (!utils.processMouseModifiers(triggerObject)) return;
           if (!utils.processOutsideModifiers(triggerObject)) return;
+          if (!utils.processOnceModifiers(triggerObject)) return;
           if (!utils.processPreventOrStopModifiers(triggerObject)) return;
           if (!(await utils.processDelayModifiers(triggerObject))) return;
 

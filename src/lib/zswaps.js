@@ -31,6 +31,7 @@ export async function parseZSwaps(documentOrNode) {
           if (!utils.processKeyboardModifiers(triggerObject)) return;
           if (!utils.processMouseModifiers(triggerObject)) return;
           if (!utils.processOutsideModifiers(triggerObject)) return;
+          if (!utils.processOnceModifiers(triggerObject)) return;
           if (!utils.processPreventOrStopModifiers(triggerObject)) return;
           if (!(await utils.processDelayModifiers(triggerObject))) return;
 

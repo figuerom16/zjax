@@ -33,17 +33,23 @@ export function getStatements(string, tagName) {
   const statementStrings = string.split(/,\s*(?=@)/);
   for (const statementString of statementStrings) {
     // Split the trigger and handler string
-    const match = statementString.match(/^(@\w+[\w\-\.]+|@\[[\w\-\.\,]+\])?(.*)/);
+    const match = statementString.match(/^(@\w+[\w\-\.]+|@\[[\w\-\.\,\s]+\])?(.*)/);
     // Reduce things like "@click" to "click" and "@[click, change]" to "click,change"
-    const triggerString = match[1] ? match[1].replace(/[@\[\]\s]+/, "") : "";
+    // console.log("match[1]", match[1]);
+    const triggerString = match[1] ? match[1].replace(/[@\[\]\s]/g, "") : "";
+    // const triggerString = match[1].replaceAll(" ", "");
+    // console.log("triggerString", triggerString);
     // Make sure handerString is trimmed or an empty string if undefined.
     const handlerString = match[2] ? match[2].trim() : "";
+    // console.log("handlerString", handlerString);
     // Get the triggers array
     const triggersAndModifiers = getTriggers(triggerString, tagName);
+    // console.log("triggersAndModifiers", triggersAndModifiers);
     for (const { trigger, modifiers } of triggersAndModifiers) {
       statements.push({ trigger, modifiers, handlerString });
     }
   }
+  // console.log("statements", statements);
   return statements;
 }
 
@@ -213,7 +219,6 @@ function getTriggers(triggerString, tagName) {
 function getTriggerObject(triggerStringPart) {
   // Split a string like "click.outside.once" to get the trigger and modifiers
   const triggerStringParts = triggerStringPart.split(".");
-
   // The first part is the trigger and the rest are modifiers
   const trigger = triggerStringParts.shift();
 
@@ -232,7 +237,9 @@ function getTriggerObject(triggerStringPart) {
   const modifiers = {};
   let nextKey = isKeyboardEvent ? "keyName" : null;
   for (const part of triggerStringParts) {
-    previousModifier = part;
+    // console.log("part", part);
+    // console.log("isMouseEvent", isMouseEvent);
+    // console.log("isKeyboardEvent", isKeyboardEvent);
 
     // Is this a global trigger modifier?
     if (constants.globalTriggerModifiers.includes(part)) {
@@ -246,15 +253,29 @@ function getTriggerObject(triggerStringPart) {
       continue;
     }
 
-    // Is this a boolean keyboard trigger modifier?
+    // Is this a boolean keyboard trigger modifier? (like shift, ctrl, alt, meta)
     if (isKeyboardEvent && constants.keyboardTriggerModifiers.includes(part)) {
       modifiers[part] = true;
       continue;
     }
 
+    // For once modifiers, we'll let zactions/zswaps handle this
+    if (part === "once") {
+      modifiers[part] = part;
+      continue;
+    }
+
+    // For outside modifiers, we'll let zactions/zswaps handle this
+
+    if (part === "outside" && (isMouseEvent || isKeyboardEvent)) {
+      modifiers[part] = part;
+      continue;
+    }
+
     // Since we haven't matched anything yet, maybe this is the keyName for a keyboard event?
     if (isKeyboardEvent && nextKey === "keyName") {
-      modifiers[nextKey] = part;
+      // If this is a named key like "escape" or "arrowup", we'll get it from the namedKeyMap.
+      modifiers[nextKey] = constants.namedKeyMap[part] || part;
       nextKey = null;
       continue;
     }
