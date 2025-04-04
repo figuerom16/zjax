@@ -1,31 +1,14 @@
 {
   "name": "zjax",
-  "version": "1.0.41",
+  "private": true,
+  "version": "0.0.0",
   "type": "module",
-  "description": "ZJAX is a lightweight yet powerful JavaScript library that brings modern SPA-like interactivity to your web pages with minimal effort.",
-  "main": "dist/zjax.min.js",
   "scripts": {
-    "dev": "nodemon test/server.cjs",
-    "build": "esbuild src/main.js --bundle --minify --outfile=dist/zjax.min.js",
-    "size": "gzip -c dist/zjax.min.js | wc -c | awk '{print \"Gzipped and minified size: \" $1 / 1024 \" KB\"}'",
-    "semver": "node script/semver.cjs"
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
   },
-  "files": [
-    "dist/zjax.min.js",
-    "Readme.md",
-    "CHANGELOG.md",
-    "LICENSE"
-  ],
-  "keywords": [
-    "htmx",
-    "hypermedia",
-    "ajax"
-  ],
-  "author": "Codepilot SF",
-  "license": "MIT",
   "devDependencies": {
-    "esbuild": "0.24.2",
-    "express": "^4.21.2",
-    "nodemon": "^3.1.9"
+    "vite": "^6.2.0"
   }
 }

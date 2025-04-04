@@ -1,4 +1,4 @@
-import { constants, debug, utils, parseZActions } from "../lib.js";
+import { constants, debug, utils, parseZActions } from "../lib";
 
 export async function parseZSwaps(documentOrNode) {
   // Find all nodes with a z-swap attribute

@@ -1,4 +1,4 @@
-export function getGlobal() {
+export function getGlobalZjax() {
   return {
     debug: false,
     transitions: true,

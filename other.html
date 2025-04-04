@@ -1,6 +1,1 @@
-<div id="swapme">
-  <h1>ZJAX gives HTML superpowers!</h1>
-  <a href="/index.html" z-swap="#swapme">Click me</a>
-  <a id="moby" href="https://httpbin.org/html" z-swap="@load h1->h2">Fetch Moby Dick</a>
-  <button id="moby" class="fade-in" z-action="$('h1').remove()">Button from OTHER</button>
-</div
+<h1 z-swap="/ h1" z-action="@keydown.window.escape console.log('esc')">Other Page</h1>

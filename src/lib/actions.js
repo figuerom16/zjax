@@ -1,6 +1,7 @@
-import { debug, utils, constants } from "../lib.js";
+import { debug, utils, constants } from "../lib";
 
-export function parseZActions(documentOrNode) {
+export function parseActions(documentOrNode) {
+  return;
   const zActionNodes = utils.getMatchingNodes(documentOrNode, "[z-action]");
   debug(`Found ${zActionNodes.length} z-action nodes in ${utils.prettyNodeName(documentOrNode)}`);
 
