@@ -32,8 +32,18 @@ export function parseTriggers(value, node) {
     // Make sure handlerString is trimmed or an empty string if undefined.
     const handlerString = match[2] ? match[2].trim() : "";
 
-    console.log("triggerString", triggerString);
-    console.log("handlerString", handlerString);
+    // Insert default?
+    if (!triggerString) {
+      const triggerKey = node.tagName === "FORM" ? "submit" : "click";
+      triggers[triggerKey] = {
+        target: node,
+        modifiers: {},
+        handlerString,
+      };
+    }
+    
+    // Split the trigger string by commas to get an array of trigger.modifiers
+
     // // Get the triggers array
     // const triggersAndModifiers = getTriggers(triggerString, tagName);
     // // console.log("triggersAndModifiers", triggersAndModifiers);
