@@ -1,4 +1,4 @@
-// Receives a z-swap or z-action value as a string (and also the node itelf)
+// Receives a z-swap or z-action value as a string (and also the node itelf).
 // Returns an object like this:
 
 // {
@@ -18,7 +18,7 @@ export function parseTriggers(value, node) {
   const triggers = {};
 
   // Needs to handle multiple statements separated by ", @".
-  // ...and also multiple triggers like "@[click,change] openModal"
+  // ...and also multiple trigger events like "@[click,change] openModal"
 
   // First, split the statements by ", @"
   const statements = value.split(/,\s*(?=@)/);
@@ -41,8 +41,14 @@ export function parseTriggers(value, node) {
         handlerString,
       };
     }
-    
+
     // Split the trigger string by commas to get an array of trigger.modifiers
+
+    //
+
+    // Split the trigger.modifiers, use the first as triggerKey, then get modifiers object.
+
+    //
 
     // // Get the triggers array
     // const triggersAndModifiers = getTriggers(triggerString, tagName);
