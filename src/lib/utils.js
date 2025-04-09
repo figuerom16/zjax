@@ -90,8 +90,8 @@ export function debounce(func, delay) {
     clearTimeout(timeoutId);
 
     // Create a new promise and add its resolve function to the list
-    const promise = new Promise((resolve) => {
-      resolveList.push(resolve);
+    const promise = new Promise((resolve, reject) => {
+      resolveList.push({ resolve, reject });
     });
 
     // Set a new timeout
@@ -101,11 +101,11 @@ export function debounce(func, delay) {
         const result = await func.apply(this, args);
 
         // Resolve all promises with the result
-        resolveList.forEach((resolve) => resolve(result));
+        resolveList.forEach(({ resolve }) => resolve(result));
         resolveList = [];
       } catch (error) {
         // Reject all promises if an error occurs
-        resolveList.forEach((resolve) => resolve(Promise.reject(error)));
+        resolveList.forEach(({ reject }) => reject(error));
         resolveList = [];
       }
     }, delay);

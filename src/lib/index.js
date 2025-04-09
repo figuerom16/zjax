@@ -6,6 +6,6 @@ export * as utils from "./utils.js";
 export { getGlobal } from "./global.js";
 export { debug } from "./debug.js";
 export { parseTriggers } from "./triggers.js";
-export { addListener, removeAllListeners } from "./listeners.js";
+export { addZjaxListener, removeAllZjaxListeners } from "./listeners.js";
 export { parseSwaps } from "./swaps.js";
 export { parseActions } from "./actions.js";

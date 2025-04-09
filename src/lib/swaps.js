@@ -1,4 +1,4 @@
-import { constants, debug, utils, parseTriggers, parseActions } from "../lib";
+import { constants, debug, utils, parseTriggers, parseActions, addZjaxListener } from "../lib";
 
 export async function parseSwaps(documentOrNode) {
   // Find all nodes with a z-swap attribute
@@ -13,30 +13,9 @@ export async function parseSwaps(documentOrNode) {
       for (const trigger of triggers) {
         const swapObject = parseSwapObject(trigger);
         // Add the swap function listener to the node
-        const swapFunction = getSwapFunction(trigger, swapObject);
+        const handlerFunction = getSwapFunction(trigger, swapObject);
 
-        trigger.target.addEventListener(trigger.event, async function (event) {
-          // Process modifiers
-          if (!utils.processKeyboardModifiers({ ...trigger, event })) return;
-          if (!utils.processMouseModifiers({ ...trigger, event })) return;
-          if (!utils.processOutsideModifiers({ ...trigger, event })) return;
-          if (!utils.processOnceModifiers({ ...trigger, event })) return;
-          if (!utils.processPreventOrStopModifiers({ ...trigger, event })) return;
-          if (!(await utils.processDelayModifiers({ ...trigger, event }))) return;
-
-          if (trigger.modifiers.debounce) {
-            const debouncedHandler = utils.debounce(swapFunction, trigger.modifiers.debounce);
-            await debouncedHandler(event);
-          } else {
-            await swapFunction(event);
-          }
-        });
-
-        // Add a mutation observer to remove the event listener when the node is removed
-        utils.attachMutationObserver(swapObject.trigger, swapFunction, node);
-        if (trigger === "zjax:load") {
-          node.dispatchEvent(new CustomEvent("zjax:load"));
-        }
+        addZjaxListener(trigger, handlerFunction);
 
         debug(`Added z-swap for '${trigger.event}' events to ${utils.prettyNodeName(node)}`);
       }
