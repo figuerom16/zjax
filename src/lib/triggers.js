@@ -1,32 +1,38 @@
 // Receives a z-swap or z-action value as a string (and also the node itelf).
-// Returns an object like this:
+// Returns an array of trigger objects like this:
 
-// {
-//   click: {
-//     target: node,
+// [
+//   {
+//     event: 'click',
 //     modifiers: { shift: true },
+//     target: [Object],
+//     node: [Object],
 //     handlerString: "GET /other-page"
 //   },
-//   mouseover: {
-//     target: node,
+//   {
+//     event: 'mouseover',
 //     modifiers: {},
+//     target: [Object],
+//     node: [Object],
 //     handlerString: "GET /remote-tooltip"
 //   },
 // };
 
-export function parseTriggers(value, node) {
-  const triggers = {};
+import { constants } from "../lib";
+
+export function parseTriggers(valueString, node) {
+  const triggers = [];
 
   // Needs to handle multiple statements separated by ", @".
   // ...and also multiple trigger events like "@[click,change] openModal"
 
   // First, split the statements by ", @"
-  const statements = value.split(/,\s*(?=@)/);
+  const statements = valueString.split(/,\s*(?=@)/);
   for (const statement of statements) {
     // Split the trigger and handler string
     const match = statement.match(/^(@\w+[\w\-\.]+|@\[[\w\-\.\,\s]+\])?(.*)/);
 
-    // Reduce things like "@click" to "click" and "@[click, change]" to "click,change"
+    // Reduce things like "@click" to "click" and "@[click.once, change]" to "click.once,change"
     const triggerString = match[1] ? match[1].replace(/[@\[\]\s]/g, "") : "";
 
     // Make sure handlerString is trimmed or an empty string if undefined.
@@ -34,80 +40,48 @@ export function parseTriggers(value, node) {
 
     // Insert default?
     if (!triggerString) {
-      const triggerKey = node.tagName === "FORM" ? "submit" : "click";
-      triggers[triggerKey] = {
-        target: node,
+      const event = node.tagName === "FORM" ? "submit" : "click";
+      triggers.push({
+        event,
         modifiers: {},
+        node,
+        target: node,
         handlerString,
-      };
+      });
+      continue;
     }
 
     // Split the trigger string by commas to get an array of trigger.modifiers
+    const triggerStringParts = triggerString.split(",");
+    for (const part of triggerStringParts) {
+      // Split the trigger.modifiers, use the first as event, then get modifiers object.
+      const modifiersStrings = part.split(".");
+      const event = modifiersStrings.shift();
+      const modifiers = parseModifiers(event, modifiersStrings);
+      const modifierKeys = Object.keys(modifiers);
+      let target;
+      if (modifierKeys.includes("document")) target = document;
+      else if (modifierKeys.includes("window")) target = window;
+      else if (modifierKeys.includes("outside")) target = window;
+      else target = node;
 
-    //
-
-    // Split the trigger.modifiers, use the first as triggerKey, then get modifiers object.
-
-    //
-
-    // // Get the triggers array
-    // const triggersAndModifiers = getTriggers(triggerString, tagName);
-    // // console.log("triggersAndModifiers", triggersAndModifiers);
-    // for (const { trigger, modifiers } of triggersAndModifiers) {
-    //   statements.push({ trigger, modifiers, handlerString });
-    // }
-  }
-  // console.log("statements", statements);
-  // return statements;
-}
-
-// Private
-
-function parseTriggerString(triggerString, tagName) {
-  // Takes a string like "click" or "click.delay.500ms,keydown.window.escape" and
-  // returns an array like:
-  //
-  // [
-  //   {
-  //      trigger: 'click',
-  //      modifiers: {
-  //        delay: 500
-  //      }
-  //   },
-  //   {
-  //      trigger: 'keydown',
-  //      modifiers: {
-  //        window: true,
-  //        keyName: 'escape'
-  //      }
-  //   },
-  // ]
-
-  // Return default?
-  if (!triggerString) {
-    return tagName === "FORM"
-      ? [{ trigger: "submit", modifiers: {} }]
-      : [{ trigger: "click", modifiers: {} }];
-  }
-
-  const triggers = [];
-  // Loop through each trigger string (typically this an array of just one, like ['click'])
-  // but sometimes something like ['click.delay.500ms','keydown.window.escape']
-  for (const triggerStringPart of triggerString.split(",")) {
-    triggers.push(getTriggerObject(triggerStringPart));
+      triggers.push({
+        event,
+        modifiers,
+        target,
+        node,
+        handlerString,
+      });
+    }
   }
   return triggers;
 }
 
-function getTriggerObject(triggerStringPart) {
-  // Split a string like "click.outside.once" to get the trigger and modifiers
-  const triggerStringParts = triggerStringPart.split(".");
-  // The first part is the trigger and the rest are modifiers
-  const trigger = triggerStringParts.shift();
-
+// Private
+function parseModifiers(event, modifiersStrings) {
   // We need to know if this is a keyboard or mouse event since those have special modifiers.
-  const isMouseEvent = constants.mouseEvents.includes(trigger);
-  const isKeyboardEvent = constants.keyboardEvents.includes(trigger);
+  const isMouseEvent = constants.mouseEvents.includes(event);
+  const isKeyboardEvent = constants.keyboardEvents.includes(event);
 
   // For keyboard events, there's a slightly tricky situation because a modifier at least for the
   // keyName is absolutely required –– otherwise, if it were skipped, we might think the next arg
@@ -119,11 +93,7 @@ function getTriggerObject(triggerStringPart) {
   // keyboard trigger modifier.
   const modifiers = {};
   let nextKey = isKeyboardEvent ? "keyName" : null;
-  for (const part of triggerStringParts) {
-    // console.log("part", part);
-    // console.log("isMouseEvent", isMouseEvent);
-    // console.log("isKeyboardEvent", isKeyboardEvent);
-
+  for (const part of modifiersStrings) {
     // Is this a global trigger modifier?
     if (constants.globalTriggerModifiers.includes(part)) {
       modifiers[part] = true;
@@ -144,14 +114,14 @@ function getTriggerObject(triggerStringPart) {
 
     // For once modifiers, we'll let zactions/zswaps handle this
     if (part === "once") {
-      modifiers[part] = part;
+      modifiers[part] = true;
       continue;
     }
 
     // For outside modifiers, we'll let zactions/zswaps handle this
 
     if (part === "outside" && (isMouseEvent || isKeyboardEvent)) {
-      modifiers[part] = part;
+      modifiers[part] = true;
       continue;
     }
 
@@ -191,8 +161,5 @@ function getTriggerObject(triggerStringPart) {
     throw new Error(`Unknown trigger modifier in this context: ${part}`);
   }
 
-  return {
-    trigger,
-    modifiers,
-  };
+  return modifiers;
 }

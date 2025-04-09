@@ -6,94 +6,87 @@ export async function parseSwaps(documentOrNode) {
   debug(`Found ${swapNodes.length} z-swap nodes in ${utils.prettyNodeName(documentOrNode)}`);
 
   for (const node of swapNodes) {
-    // try {
-    const value = node.getAttribute("z-swap");
-    const triggers = parseTriggers(value, node);
-    // console.log("triggers", triggers);
-    continue;
+    try {
+      const value = node.getAttribute("z-swap");
+      const triggers = parseTriggers(value, node);
 
-    const statements = utils.getStatements(swapString, node.tagName);
+      for (const trigger of triggers) {
+        const swapObject = parseSwapObject(trigger);
+        // Add the swap function listener to the node
+        const swapFunction = getSwapFunction(trigger, swapObject);
 
-    for (const { trigger, modifiers, handlerString } of statements) {
-      const zSwapObject = getZSwapObject(trigger, handlerString, node);
-      // Add the swap function listener to the node
-      const zSwapFunction = getZSwapFunction(zSwapObject, node);
+        trigger.target.addEventListener(trigger.event, async function (event) {
+          // Process modifiers
+          if (!utils.processKeyboardModifiers({ ...trigger, event })) return;
+          if (!utils.processMouseModifiers({ ...trigger, event })) return;
+          if (!utils.processOutsideModifiers({ ...trigger, event })) return;
+          if (!utils.processOnceModifiers({ ...trigger, event })) return;
+          if (!utils.processPreventOrStopModifiers({ ...trigger, event })) return;
+          if (!(await utils.processDelayModifiers({ ...trigger, event }))) return;
 
-      const targetForListener = utils.getDocumentOrWindow(modifiers) || node;
-      targetForListener.addEventListener(trigger, async function (event) {
-        // Process modifiers
-        const triggerObject = { trigger, modifiers, node, event };
-        if (!utils.processKeyboardModifiers(triggerObject)) return;
-        if (!utils.processMouseModifiers(triggerObject)) return;
-        if (!utils.processOutsideModifiers(triggerObject)) return;
-        if (!utils.processOnceModifiers(triggerObject)) return;
-        if (!utils.processPreventOrStopModifiers(triggerObject)) return;
-        if (!(await utils.processDelayModifiers(triggerObject))) return;
+          if (trigger.modifiers.debounce) {
+            const debouncedHandler = utils.debounce(swapFunction, trigger.modifiers.debounce);
+            await debouncedHandler(event);
+          } else {
+            await swapFunction(event);
+          }
+        });
 
-        if (modifiers.debounce) {
-          const debouncedHandler = utils.debounce(zSwapFunction, modifiers.debounce);
-          await debouncedHandler(event);
-        } else {
-          await zSwapFunction(event);
+        // Add a mutation observer to remove the event listener when the node is removed
+        utils.attachMutationObserver(swapObject.trigger, swapFunction, node);
+        if (trigger === "zjax:load") {
+          node.dispatchEvent(new CustomEvent("zjax:load"));
         }
-      });
 
-      // Add a mutation observer to remove the event listener when the node is removed
-      utils.attachMutationObserver(zSwapObject.trigger, zSwapFunction, node);
-      if (trigger === "zjax:load") {
-        node.dispatchEvent(new CustomEvent("zjax:load"));
+        debug(`Added z-swap for '${trigger.event}' events to ${utils.prettyNodeName(node)}`);
       }
-
-      debug(`Added z-swap for '${zSwapObject.trigger}' events to ${utils.prettyNodeName(node)}`);
+    } catch (error) {
+      console.error(`ZJAX ERROR – Unable to parse z-swap: ${error.message}\n`, node, error.stack);
     }
-    // } catch (error) {
-    //   console.error(`ZJAX ERROR – Unable to parse z-swap: ${error.message}\n`, node, error.stack);
-    // }
   }
 }
 
-function getZSwapObject(trigger, handlerString, node) {
-  const valueString = collapseCommas(handlerString);
+function parseSwapObject({ handlerString, node }) {
+  handlerString = collapseCommas(handlerString);
+
   // Split on whitespace
-  const valueParts = valueString.split(/\s/);
-  if (valueParts.length < 1 || valueParts.length > 4) {
+  const handlerParts = handlerString.split(/\s/);
+  if (handlerParts.length < 1 || handlerParts.length > 4) {
     throw new Error("Must have between 1 and 4 parts separated by spaces.");
   }
 
-  // Loop through space-separated parts of the z-swap attribute to build the zSwapObject object
-  const zSwapObject = {
-    trigger: trigger,
-  };
+  // Loop through space-separated parts of the z-swap attribute to build the swapObject object
+  const swapObject = {};
   const leftoverParts = [];
 
-  while (valueParts.length > 0) {
-    const part = valueParts.shift();
+  while (handlerParts.length > 0) {
+    const part = handlerParts.shift();
     const typeAndValue = getMethodOrEndpointPair(part);
     if (typeAndValue) {
-      zSwapObject[typeAndValue[0]] = typeAndValue[1];
+      swapObject[typeAndValue[0]] = typeAndValue[1];
     } else {
       leftoverParts.push(part);
     }
   }
 
   // Add the array of swaps
-  zSwapObject.swaps = getSwaps(leftoverParts.join(" "));
+  swapObject.swaps = getSwaps(leftoverParts.join(" "));
 
   // Now set defaults for missing values
-  if (!zSwapObject.method) {
-    zSwapObject.method = node.tagName === "FORM" ? "POST" : "GET";
+  if (!swapObject.method) {
+    swapObject.method = node.tagName === "FORM" ? "POST" : "GET";
   }
-  if (!zSwapObject.endpoint) {
+  if (!swapObject.endpoint) {
     if (node.tagName === "FORM") {
-      zSwapObject.endpoint = node.action;
+      swapObject.endpoint = node.action;
     } else if (node.tagName === "A") {
-      zSwapObject.endpoint = node.href;
+      swapObject.endpoint = node.href;
     } else {
       throw new Error("No endpoint inferrable or specified");
     }
   }
 
-  return zSwapObject;
+  return swapObject;
 }
 
 function getMethodOrEndpointPair(swapSpecifier) {
@@ -110,15 +103,15 @@ function getMethodOrEndpointPair(swapSpecifier) {
 }
 
 function getSwaps(swapString) {
-  // Parse a  like: "foo|inner->#bar|inner, #baz" into an array of objects
+  // Parse a string like: "foo|inner->#bar|inner, #baz" into an array of objects
   // [
   //   { response: "foo", target: "#bar", responseType: "inner", swapType: "inner" },
   //   { response: "#baz", target: "#baz", responseType: "outer", swapType: "outer" }
   // ]
   const swaps = [];
-  for (const zSwapPart of swapString.split(",")) {
+  for (const swapPart of swapString.split(",")) {
     const swap = {};
-    const responseAndTargetSwaps = zSwapPart.split("->") || [];
+    const responseAndTargetSwaps = swapPart.split("->") || [];
     const targetNodeAndSwapType = responseAndTargetSwaps.pop();
     const [targetNode, swapType] = targetNodeAndSwapType.split("|");
     const responseNodeAndResponseType = responseAndTargetSwaps[0] || "";
@@ -147,42 +140,43 @@ function getSwaps(swapString) {
   return swaps;
 }
 
-function getZSwapFunction(zSwap, node) {
+function getSwapFunction(trigger, swapObject) {
   return async (event) => {
-    // Add formData to zSwap now at swap time (so form values are populated)
-
-    event.preventDefault();
-    event.stopPropagation();
-    const formData = (node.tagName === "FORM" && new FormData(event.target)) || null;
-    zSwap.formData = formData ? convertFormDataToString(formData) : null;
-    debug("z-swap triggered for", zSwap);
+    // Add formData to swapObject now at swap time (so form values are populated)
+    const formData = (trigger.node.tagName === "FORM" && new FormData(event.target)) || null;
+    swapObject.formData = formData ? convertFormDataToString(formData) : null;
+    debug("z-swap triggered for", swapObject);
 
     try {
       // Emit event
       const requestEvent = new CustomEvent("zjax:request", {
         detail: {
-          node: node,
-          trigger: zSwap.trigger,
-          method: zSwap.method,
-          endpoint: zSwap.endpoint,
-          formData: zSwap.formData,
+          event: trigger.event,
+          node: trigger.node,
+          method: swapObject.method,
+          endpoint: swapObject.endpoint,
+          formData: swapObject.formData,
         },
       });
       document.dispatchEvent(requestEvent);
 
       // Call the action
-      const responseDOM = await getResponseDOM(zSwap.method, zSwap.endpoint, zSwap.formData);
+      const responseDOM = await getResponseDOM(
+        swapObject.method,
+        swapObject.endpoint,
+        swapObject.formData,
+      );
 
       const responseDOMToLog = responseDOM.body || responseDOM.documentElement;
       const responseEvent = new CustomEvent("zjax:response", {
         detail: {
-          node: node,
+          node: trigger.node,
           response: responseDOMToLog.innerHTML.replace(/\n|\s{2,}/g, ""),
         },
       });
       document.dispatchEvent(responseEvent);
       // Swap nodes
-      for (const swap of zSwap.swaps) {
+      for (const swap of swapObject.swaps) {
         const swappingEl = document.querySelector(swap.target);
         if (swappingEl) {
           swappingEl.classList.add("zjax-swapping");
@@ -209,15 +203,15 @@ function getZSwapFunction(zSwap, node) {
 
       const swapEvent = new CustomEvent("zjax:swap", {
         detail: {
-          node: node,
-          swaps: zSwap.swaps,
+          node: trigger.node,
+          swaps: swapObject.swaps,
         },
       });
       document.dispatchEvent(swapEvent);
     } catch (error) {
       console.error(
         `ZJAX ERROR – Unable to execute z-swap function: ${error.message}\n`,
-        node,
+        trigger.node,
         error.stack,
       );
     }
