@@ -1,4 +1,4 @@
-import { debug, constants } from "../lib";
+import { debug } from "../lib";
 
 export function getMatchingNodes(documentOrNode, selector) {
   // Find all decendent nodes with a matching attribute
@@ -18,60 +18,6 @@ export function getDocumentOrWindow(modifiers) {
   return null;
 }
 
-export function processKeyboardModifiers({ trigger, modifiers, event }) {
-  // Check for key modifiers?
-  if (constants.keyboardEvents.includes(trigger)) {
-    if (modifiers.shift && !event.shiftKey) return false;
-    if (modifiers.ctrl && !event.ctrlKey) return false;
-    if (modifiers.alt && !event.altKey) return false;
-    if (modifiers.meta && !event.metaKey) return false;
-    if (modifiers.keyName && event.key !== modifiers.keyName) return false;
-  }
-  return true;
-}
-
-export function processMouseModifiers({ trigger, modifiers, event }) {
-  // Check for mouse modifiers?
-  if (constants.mouseEvents.includes(trigger)) {
-    if (modifiers.shift && !event.shiftKey) return false;
-    if (modifiers.ctrl && !event.ctrlKey) return false;
-    if (modifiers.alt && !event.altKey) return false;
-    if (modifiers.meta && !event.metaKey) return false;
-  }
-  return true;
-}
-
-export function processOutsideModifiers({ modifiers, node, event }) {
-  if (modifiers.outside) {
-    if (node.contains(event.target)) return false;
-  }
-  return true;
-}
-
-export function processOnceModifiers({ modifiers, node }) {
-  // Check for once modifier?
-  if (node.hasFiredOnce) return false;
-  if (modifiers.once) {
-    node.hasFiredOnce = true;
-  }
-  return true;
-}
-
-export function processPreventOrStopModifiers({ modifiers, event }) {
-  // Prevent default or stop propagation?
-  if (modifiers.prevent) event.preventDefault();
-  if (modifiers.stop) event.stopPropagation();
-  return true;
-}
-
-export async function processDelayModifiers({ modifiers }) {
-  // Check for timer modifiers?
-  if (modifiers.delay) {
-    await new Promise((resolve) => setTimeout(resolve, modifiers.delay));
-  }
-  return true;
-}
-
 export function prettyNodeName(documentOrNode) {
   return documentOrNode instanceof Document
     ? "#document"
@@ -79,40 +25,6 @@ export function prettyNodeName(documentOrNode) {
         documentOrNode.tagName.toLowerCase() +
         (documentOrNode.id ? "#" + documentOrNode.id : "") +
         ">";
-}
-
-export function debounce(func, delay) {
-  let timeoutId;
-  let resolveList = [];
-
-  return function (...args) {
-    // Clear the existing timeout
-    clearTimeout(timeoutId);
-
-    // Create a new promise and add its resolve function to the list
-    const promise = new Promise((resolve, reject) => {
-      resolveList.push({ resolve, reject });
-    });
-
-    // Set a new timeout
-    timeoutId = setTimeout(async () => {
-      try {
-        // Call the original async function and await its result
-        const result = await func.apply(this, args);
-
-        // Resolve all promises with the result
-        resolveList.forEach(({ resolve }) => resolve(result));
-        resolveList = [];
-      } catch (error) {
-        // Reject all promises if an error occurs
-        resolveList.forEach(({ reject }) => reject(error));
-        resolveList = [];
-      }
-    }, delay);
-
-    // Return the promise
-    return promise;
-  };
 }
 
 export function attachMutationObserver(trigger, handler, node) {

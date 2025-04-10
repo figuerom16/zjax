@@ -11,7 +11,7 @@
 
         zjax.actions({
           alert() {
-            alert("Hello, Monkey!");
+            console.log("Hello, Monkey!");
           },
         });
       });
@@ -20,15 +20,15 @@
 
   <body>
     <form action="./submit" z-swap="*">
-      <input type="text" name="name" z-action="@input $('h1').innerText = $().value || ''" />
+      <input type="text" name="name" z-action="@input.debounce.1000ms $('h1').innerText = $().value || ''" />
       <input id="phone" type="text" name="phone" />
       <button type="submit">Go</button>
     </form>
 
     <h1 z-action="@click $().remove()">This is Zjax</h1>
-    <h1 z-swap="@click.debounce.1s /other.html h1">Index</h1>
-    <a href="https://httpbin.org/html" z-swap="@click.prevent p">Fetch Moby Dick</a>
-    <p z-action="@keydown.window.prevent.b alert">This will be replaced by Zjax.</p>
-    <p z-action="@[keydown.window.f,click.outside] console.log('foo')">test keys</p>
+    <!-- <h1 z-swap="@click.debounce.1s /other.html h1">Index</h1> -->
+    <!-- <a href="https://httpbin.org/html" z-swap="@click.prevent p">Fetch Moby Dick</a> -->
+    <!-- <p z-action="@keydown.window.prevent.b alert">This will be replaced by Zjax.</p> -->
+    <p z-action="@[keydown.window.f] console.log('you pressed F')">test keys</p>
   </body>
 </html>
