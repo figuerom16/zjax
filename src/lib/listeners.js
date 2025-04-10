@@ -21,7 +21,6 @@ export function addZjaxListener(trigger, handlerFunction, with$ = false) {
     if (!(await modifiers.processDelay(trigger, event))) return;
 
     const eventOrDollar = with$ ? get$(trigger.node, event) : event;
-    // Todo: Log and emit event with result of swap/action (incl DOM event returned by function)
 
     if (modifiers.debounce) {
       const debouncedHandler = modifiers.debounce(handlerFunction, trigger.modifiers.debounce);
@@ -33,35 +32,10 @@ export function addZjaxListener(trigger, handlerFunction, with$ = false) {
 
   // Add a mutation observer to remove the event listener when the node is removed
   utils.attachMutationObserver(trigger.event, handlerFunction, trigger.node);
-
-  // Todo: update this to use custom "mount" event
-  // if (trigger === "zjax:load") {
-  //   node.dispatchEvent(new CustomEvent("zjax:load"));
-  // }
 }
 
 export function removeAllZjaxListeners() {
-  //
-}
-
-// Private
-async function getHandlerWith$(node, event, handlerFunction) {
-  // try {
-  // const $ = get$(node);
-  // $.event = event;
-  // const result = await handlerFunction($);
-  // const actionEvent = new CustomEvent("action", {
-  //   detail: {
-  //     result: result,
-  //     event: event,
-  //   },
-  // });
-  // if (result) {
-  //   node.dispatchEvent(actionEvent);
-  //   }
-  // } catch (error) {
-  //   console.error(`ZJAX ERROR – Unable to execute z-action: ${error.message}\n`, node, error.stack);
-  // }
+  // Todo
 }
 
 function get$(node, event) {

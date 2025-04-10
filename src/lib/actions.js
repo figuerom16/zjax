@@ -1,20 +1,19 @@
 import { debug, utils, parseTriggers, addZjaxListener } from "../lib";
 
 export function parseActions(documentOrNode) {
+  // Find all nodes with z-action attributes.
   const zActionNodes = utils.getMatchingNodes(documentOrNode, "[z-action]");
   debug(`Found ${zActionNodes.length} z-action nodes in ${utils.prettyNodeName(documentOrNode)}`);
 
+  // For each node, get an array of trigger objects
   for (const node of zActionNodes) {
     try {
       const value = node.getAttribute("z-action");
       const triggers = parseTriggers(value, node);
+      // For each trigger, get the handler function and add the listener
       for (const trigger of triggers) {
-        // Get the trigger and handler string
-        // Get the action function
         const handlerFunction = getActionFunction(trigger);
-        // Add the action function listener to the node
         addZjaxListener(trigger, handlerFunction, true);
-
         debug(`Added z-action for '${trigger.event}' events to ${utils.prettyNodeName(node)}`);
       }
     } catch (error) {

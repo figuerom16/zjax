@@ -5,18 +5,16 @@ export async function parseSwaps(documentOrNode) {
   const swapNodes = utils.getMatchingNodes(documentOrNode, "[z-swap]");
   debug(`Found ${swapNodes.length} z-swap nodes in ${utils.prettyNodeName(documentOrNode)}`);
 
+  // For each node, get an array of trigger objects
   for (const node of swapNodes) {
     try {
       const value = node.getAttribute("z-swap");
       const triggers = parseTriggers(value, node);
-
+      // For each trigger, get the handler function and add the listener
       for (const trigger of triggers) {
         const swapObject = parseSwapObject(trigger);
-        // Add the swap function listener to the node
         const handlerFunction = getSwapFunction(trigger, swapObject);
-
         addZjaxListener(trigger, handlerFunction);
-
         debug(`Added z-swap for '${trigger.event}' events to ${utils.prettyNodeName(node)}`);
       }
     } catch (error) {
@@ -26,9 +24,19 @@ export async function parseSwaps(documentOrNode) {
 }
 
 function parseSwapObject({ handlerString, node }) {
-  handlerString = collapseCommas(handlerString);
+  // Parse the swap handler string into an object with properties that
+  // can be used to make the swap function. The swapObject looks like this:
+  // {
+  //   method: "GET",
+  //   endpoint: "/foo",
+  //   swaps: [
+  //     { response: "foo", target: "#bar", responseType: "inner", swapType: "inner" },
+  //     { response: "#baz", target: "#baz", responseType: "outer", swapType: "outer" }
+  //   ],
+  // }
 
-  // Split on whitespace
+  // Collapse commans and split on whitespace
+  handlerString = collapseCommas(handlerString);
   const handlerParts = handlerString.split(/\s/);
   if (handlerParts.length < 1 || handlerParts.length > 4) {
     throw new Error("Must have between 1 and 4 parts separated by spaces.");
@@ -127,18 +135,6 @@ function getSwapFunction(trigger, swapObject) {
     debug("z-swap triggered for", swapObject);
 
     try {
-      // Emit event
-      const requestEvent = new CustomEvent("zjax:request", {
-        detail: {
-          event: trigger.event,
-          node: trigger.node,
-          method: swapObject.method,
-          endpoint: swapObject.endpoint,
-          formData: swapObject.formData,
-        },
-      });
-      document.dispatchEvent(requestEvent);
-
       // Call the action
       const responseDOM = await getResponseDOM(
         swapObject.method,
@@ -147,13 +143,7 @@ function getSwapFunction(trigger, swapObject) {
       );
 
       const responseDOMToLog = responseDOM.body || responseDOM.documentElement;
-      const responseEvent = new CustomEvent("zjax:response", {
-        detail: {
-          node: trigger.node,
-          response: responseDOMToLog.innerHTML.replace(/\n|\s{2,}/g, ""),
-        },
-      });
-      document.dispatchEvent(responseEvent);
+
       // Swap nodes
       for (const swap of swapObject.swaps) {
         const swappingEl = document.querySelector(swap.target);
@@ -179,14 +169,6 @@ function getSwapFunction(trigger, swapObject) {
           swapOneNode(targetNode, responseNode, swap.swapType, swap.responseType);
         }
       }
-
-      const swapEvent = new CustomEvent("zjax:swap", {
-        detail: {
-          node: trigger.node,
-          swaps: swapObject.swaps,
-        },
-      });
-      document.dispatchEvent(swapEvent);
     } catch (error) {
       console.error(
         `ZJAX ERROR – Unable to execute z-swap function: ${error.message}\n`,
@@ -208,7 +190,7 @@ async function getResponseDOM(method, endpoint, formData) {
   if (!response.ok) {
     throw new Error(`${response.status} ${response.statusText} for ${endpoint}`);
     // Todo: Think of some way to let the developer handle
-    // this error to show a message to the useras an alert
+    // this error to show a message to the user as an alert
     // notice. Maybe just trigger a zjax-error event?
   }
   const responseDOM = new DOMParser().parseFromString(await response.text(), "text/html");
@@ -425,18 +407,9 @@ async function updateAttributes(outerNode, attributesToUpdateMap) {
       }
     }
 
-    const updatedElements = Object.keys(attributesToUpdateMap)
+    Object.keys(attributesToUpdateMap)
       .map((id) => `#${id}`)
       .join(", ");
-    if (updatedElements) {
-      const settleEvent = new CustomEvent("zjax:settle", {
-        detail: {
-          node: outerNode,
-          elementIds: updatedElements,
-        },
-      });
-      document.dispatchEvent(settleEvent);
-    }
   }, 20);
 }
 
