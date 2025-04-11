@@ -7,7 +7,10 @@ export function processKeyboard(t, event) {
     if (t.modifiers.ctrl && !event.ctrlKey) return false;
     if (t.modifiers.alt && !event.altKey) return false;
     if (t.modifiers.meta && !event.metaKey) return false;
-    if (t.modifiers.keyName && event.key !== t.modifiers.keyName) return false;
+    // If a keyname is specified, check if it matches the event key (or is special value 'any')
+    if (t.modifiers.keyName && event.key !== t.modifiers.keyName && t.modifiers.keyName !== "any") {
+      return false;
+    }
   }
   return true;
 }
