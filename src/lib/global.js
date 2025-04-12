@@ -1,7 +1,14 @@
+import { parseSwaps, parseActions } from "../lib";
+
 export function getGlobal() {
   return {
     debug: false,
     transitions: true,
+    parse: function () {
+      // Parse the DOM for zjax elements
+      parseSwaps(document);
+      parseActions(document);
+    },
     zjaxActions: {}, // Defaults that take args? like zjax.remove('#foo')
     userActions: {},
     actions: function (arg1, arg2) {

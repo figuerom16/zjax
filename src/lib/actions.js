@@ -1,4 +1,4 @@
-import { debug, utils, parseTriggers, addZjaxListener } from "../lib";
+import { debug, getDollar, utils, parseTriggers, addZjaxListener } from "../lib";
 
 export function parseActions(documentOrNode) {
   // Find all nodes with z-action attributes.
@@ -13,7 +13,9 @@ export function parseActions(documentOrNode) {
       // For each trigger, get the handler function and add the listener
       for (const trigger of triggers) {
         const handlerFunction = getActionFunction(trigger);
-        addZjaxListener(trigger, handlerFunction, true);
+
+        node.handlerId = addZjaxListener(trigger, handlerFunction, true);
+
         debug(`Added z-action for '${trigger.event}' events to ${utils.prettyNodeName(node)}`);
       }
     } catch (error) {

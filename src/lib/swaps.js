@@ -14,7 +14,9 @@ export async function parseSwaps(documentOrNode) {
       for (const trigger of triggers) {
         const swapObject = parseSwapObject(trigger);
         const handlerFunction = getSwapFunction(trigger, swapObject);
-        addZjaxListener(trigger, handlerFunction);
+
+        addZjaxListener(trigger, handlerFunction, true);
+
         debug(`Added z-swap for '${trigger.event}' events to ${utils.prettyNodeName(node)}`);
       }
     } catch (error) {
