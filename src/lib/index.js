@@ -6,6 +6,7 @@ export * as modifiers from "./modifiers.js";
 export * as utils from "./utils.js";
 export { getGlobal } from "./global.js";
 export { debug } from "./debug.js";
+export { getDollar } from "./dollar.js";
 export { parseTriggers } from "./triggers.js";
 export { addZjaxListener, removeAllZjaxListeners } from "./listeners.js";
 export { parseSwaps } from "./swaps.js";

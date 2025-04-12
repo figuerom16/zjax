@@ -11,7 +11,10 @@
 
         zjax.actions({
           alert() {
-            alert("Hello, Monkey!");
+            alert("You clicked the b key.");
+          },
+          gotoFacebook($) {
+            $.redirect("https://facebook.com");
           },
         });
       });
@@ -25,7 +28,7 @@
       <button type="submit">Go</button>
     </form>
 
-    <h1 z-action="@click $().remove()">This is Zjax</h1>
+    <h1 z-action="@click gotoFacebook">This is Zjax</h1>
     <h1 z-swap="@click.debounce.500ms /other.html h1">Index</h1>
     <a href="https://httpbin.org/html" z-swap="@click.prevent p">Fetch Moby Dick</a>
     <p z-action="@keydown.window.meta.b alert">This will be replaced by Zjax.</p>
