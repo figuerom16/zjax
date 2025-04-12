@@ -38,17 +38,8 @@ export function parseTriggers(valueString, node) {
     // Make sure handlerString is trimmed or an empty string if undefined.
     const handlerString = match[2] ? match[2].trim() : "";
 
-    // Insert default?
     if (!triggerString) {
-      const event = node.tagName === "FORM" ? "submit" : "click";
-      triggers.push({
-        event,
-        modifiers: {},
-        node,
-        target: node,
-        handlerString,
-      });
-      continue;
+      throw new Error(`Missing @<trigger> string in "${statement}"`);
     }
 
     // Split the trigger string by commas to get an array of trigger.modifiers

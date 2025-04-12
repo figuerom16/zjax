@@ -22,7 +22,7 @@
   </head>
 
   <body>
-    <form action="./submit" z-swap="*">
+    <form action="./submit" z-swap="@submit *">
       <input type="text" name="name" z-action="@input.debounce.1000ms $('h1').innerText = $().value || ''" />
       <input id="phone" type="text" name="phone" />
       <button type="submit">Go</button>
