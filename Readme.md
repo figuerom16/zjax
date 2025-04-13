@@ -25,7 +25,7 @@ You can now use Zjax attributes anywhere in your project.
 <div id="content"></div>
 ```
 
-When clicked, this button will fetch the content from `/about-us` and replace the content of the local `#content` element with the `#content` element found in the response.
+When clicked, this button will fetch `/about-us` and replace the local `#content` element with the `#content` element found in the response.
 
 ### z-action example
 
@@ -35,7 +35,7 @@ When clicked, this button will fetch the content from `/about-us` and replace th
 <div id="menu">...</div>
 ```
 
-This button when clicked will simply add the CSS class `active` to the `#menu` element.
+Clicking this button will simply add the CSS class `active` to the `#menu` element.
 
 
 
@@ -44,4 +44,3 @@ This button when clicked will simply add the CSS class `active` to the `#menu` e
 **Full Documentation: [https://zjax.dev/docs](https://zjax.dev/docs)**
 
 ---
-
