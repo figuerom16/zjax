@@ -1,3 +1,13 @@
+## 2.0.1 - 2025-04-13
+- ZJAX 2.0!
+- Complete refactor, streamline/simplication of codebase
+- Added support for @mount action
+- $.redirect
+- Modifiers: .outside modifier, keyboard modifiers, window/document modifiers
+- Multiple trigger event support
+- Multiple statements support
+- Updated docs
+
 ## 1.0.41 - 2025-04-01
 - Full support for trigger modifiers on both z-swaps and z-actions
 

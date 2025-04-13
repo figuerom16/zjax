@@ -63,7 +63,7 @@ function parseSwapObject({ handlerString, node }) {
 
   // Now set defaults for missing values
   if (!swapObject.method) {
-    swapObject.method = node.tagName === "FORM" ? "POST" : "GET";
+    swapObject.method = node.tagName === "FORM" && node.method ? node.method : "GET";
   }
   if (!swapObject.endpoint) {
     if (node.tagName === "FORM") {
