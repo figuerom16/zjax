@@ -1,3 +1,6 @@
+## 2.0.2 - 2025-04-16
+- Avoids race conditions by parsing actions (and looking for named functions) at run time instead of at DOM load / parse time
+
 ## 2.0.1 - 2025-04-13
 - ZJAX 2.0!
 - Complete refactor, streamline/simplication of codebase

@@ -29,9 +29,9 @@
       <button type="submit">Go</button>
     </form>
 
-    <!-- <h1 z-action="@click $('#bkey').remove()">This is Zjax</h1> -->
+    <h1 z-action="@click $('#bkey').remove()">This is Zjax</h1>
     <h1 z-swap="@click /other.html h1">Index</h1>
-    <!-- <a href="https://httpbin.org/html" z-swap="@mount.delay.2s p">Fetch Moby Dick</a> -->
+    <a href="https://httpbin.org/html" z-swap="@mount.delay.2s p">Fetch Moby Dick</a>
     <p id="bkey" z-action="@keydown.window.meta.b alert">This will be replaced by Zjax.</p>
 
     <p z-action="@[keydown.window.any] console.log('you pressed:', $.event.key)">test keys</p>
