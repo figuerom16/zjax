@@ -12,9 +12,11 @@ export function parseActions(documentOrNode) {
       const triggers = parseTriggers(value, node);
       // For each trigger, get the handler function and add the listener
       for (const trigger of triggers) {
-        const handlerFunction = getActionFunction(trigger);
+        // const handlerFunction = getActionFunction(trigger);
+        // node.handlerId = addZjaxListener(trigger, handlerFunction, true);
 
-        node.handlerId = addZjaxListener(trigger, handlerFunction, true);
+        const wrapperFunction = getWrapperFunction(trigger);
+        node.handlerId = addZjaxListener(trigger, wrapperFunction, true);
 
         debug(`Added z-action for '${trigger.event}' events to ${utils.prettyNodeName(node)}`);
       }
@@ -22,6 +24,19 @@ export function parseActions(documentOrNode) {
       console.error(`ZJAX ERROR – Unable to parse z-action: ${error.message}\n`, node, error.stack);
     }
   }
+}
+
+function getWrapperFunction(trigger) {
+  // In order to avoid race conditions, we need to look for declared actions at runtime. So rather
+  // than trying to find the action handlerFunction and attaching that to the listener, we'll
+  // instead attach a function to go find and build that function from the trigger object at
+  // runtime. So when the button is "clicked" for example, at _that_ time, we'll find or create
+  // the handler function.
+
+  return async function (event) {
+    const handlerFunction = getActionFunction(trigger);
+    await handlerFunction(event);
+  };
 }
 
 function getActionFunction({ handlerString }) {

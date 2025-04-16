@@ -68,7 +68,8 @@ function attachMutationObserver(trigger, handlerId) {
       for (const removedNode of mutation.removedNodes) {
         if (removedNode === trigger.node || removedNode.contains(trigger.node)) {
           // Remove event listener when the node is removed from DOM
-          trigger.target.removeEventListener(trigger.event, handlers[handlerId].handlerFunction);
+          if (handlers[handlerId])
+            trigger.target.removeEventListener(trigger.event, handlers[handlerId].handlerFunction);
           delete handlers[handlerId]; // Remove the handler from the list
           zjax.debug &&
             debug(
