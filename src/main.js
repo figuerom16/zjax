@@ -6,9 +6,11 @@ import { getGlobal, parseSwaps, parseActions, removeAllZjaxListeners, debug } fr
 window.zjax = getGlobal();
 
 // Parse the DOM on load.
-debug("Parsing DOM on document load");
-parseSwaps(document);
-parseActions(document);
+document.addEventListener("DOMContentLoaded", () => {
+  debug("Parsing DOM on document load");
+  parseSwaps(document);
+  parseActions(document);
+});
 
 // Listen for Hotwire turbo:load events
 document.addEventListener("turbo:load", () => {

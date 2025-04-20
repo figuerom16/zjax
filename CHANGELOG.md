@@ -1,3 +1,6 @@
+## 2.0.3 - 2025-04-20
+- Fixed DOM parsing bug which prevented zjax from parsing without turbo::load events (so it worked only with Rails)
+
 ## 2.0.2 - 2025-04-16
 - Avoids race conditions by parsing actions (and looking for named functions) at run time instead of at DOM load / parse time
 
