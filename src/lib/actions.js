@@ -66,8 +66,16 @@ function getActionFunction({ handlerString }) {
   //   }
   // }
 
-  const namedActionFunction = getNamedActionFunction(handlerString);
-  if (namedActionFunction) {
+  const expectNamedActionFunction = handlerString.match(/^(\w+)((\.\w+)*)$/);
+
+  // Later, we can use regex below to add support for args like foo.bar(a,b,c)
+  // const expectNamedActionFunction = handlerString.match(/^(\w+)((\.\w+)*)(\([\w,\.\s]*\))?$/);
+
+  if (expectNamedActionFunction) {
+    const namedActionFunction = getNamedActionFunction(handlerString);
+    if (!namedActionFunction) {
+      throw new Error(`Unable to find z-action function: zjax.actions.${handlerString}`);
+    }
     return namedActionFunction;
   }
 
