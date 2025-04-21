@@ -6,6 +6,22 @@
     <!-- <script src="/dist/zjax.min.js"></script> -->
     <!-- <script src="//unpkg.com/zjax@2.0.3"></script> -->
     <script src="/src/ui.js"></script>
+
+    <script>
+      document.addEventListener("DOMContentLoaded", () => {
+        zjax.errors = {
+          404($) {
+            alert("not found");
+          },
+          500($) {
+            alert("ERRRRRROR!");
+          },
+          // catchAll($) {
+          //   $.redirect("/other");
+          // },
+        };
+      });
+    </script>
     <!-- <script>
       document.addEventListener("DOMContentLoaded", () => {
         zjax.debug = true;
@@ -30,6 +46,8 @@
       <input id="phone" type="text" name="phone" />
       <button type="submit">Go</button>
     </form>
+
+    <button z-swap="@click /test-500 img" style="margin: 4rem">Do It</button>
 
     <h1 z-action="@click ui.alert">This is Zjax</h1>
     <h1 z-swap="@click /other.html h1">Index</h1>

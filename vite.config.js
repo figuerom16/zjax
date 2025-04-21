@@ -20,4 +20,48 @@ export default defineConfig({
     minify: true,
     emptyOutDir: true,
   },
+  plugins: [
+    {
+      name: "test-404",
+      configureServer(server) {
+        server.middlewares.use((req, res, next) => {
+          // Check if the current path should be a 404
+          if (req.url === "/test-404") {
+            res.statusCode = 404;
+            res.end("Not Found");
+            return;
+          }
+          next();
+        });
+      },
+    },
+    {
+      name: "test-401",
+      configureServer(server) {
+        server.middlewares.use((req, res, next) => {
+          // Check if the current path should be a 404
+          if (req.url === "/test-401") {
+            res.statusCode = 401;
+            res.end("Unauthorized");
+            return;
+          }
+          next();
+        });
+      },
+    },
+    {
+      name: "test-500",
+      configureServer(server) {
+        server.middlewares.use((req, res, next) => {
+          // Check if the current path should be a 404
+          if (req.url === "/test-500") {
+            res.statusCode = 500;
+            res.end("Internal Server Error");
+            return;
+          }
+          next();
+        });
+      },
+    },
+  ],
 });

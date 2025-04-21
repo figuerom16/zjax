@@ -40,32 +40,6 @@ function getWrapperFunction(trigger) {
 }
 
 function getActionFunction({ handlerString }) {
-  // Does the function text look like a function name possibly namespaced?
-  // const actionNameMatch = handlerString.match(/^(?:(\w+)\.)*(\w+)$/);
-
-  // // If so, try to find the action function on the zjax.userActions object.
-  // if (actionNameMatch) {
-  //   const nameSpace = actionNameMatch[1];
-  //   const actionName = actionNameMatch[2];
-  //   const actions = zjax && zjax.userActions;
-
-  //   // Try to find the action function with namespace.
-  //   if (nameSpace) {
-  //     if (!(actions[nameSpace] && actions[nameSpace][actionName])) {
-  //       throw new Error(`Unknown action: ${nameSpace}.${actionName}`);
-  //     }
-  //     // Note that the handler needs to be `bind`ed to the namespace object
-  //     // in order to preserve the `this` context within action functions.
-  //     return actions[nameSpace][actionName].bind(actions[nameSpace]);
-  //   } else {
-  //     // Try to find the action function without namespace.
-  //     if (!actions[actionName]) {
-  //       throw new Error(`Unknown action: ${actionName}`);
-  //     }
-  //     return actions[actionName].bind(actions);
-  //   }
-  // }
-
   const expectNamedActionFunction = handlerString.match(/^(\w+)((\.\w+)*)$/);
 
   // Later, we can use regex below to add support for args like foo.bar(a,b,c)

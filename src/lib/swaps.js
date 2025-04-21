@@ -1,4 +1,13 @@
-import { constants, debug, utils, parseTriggers, parseActions, addZjaxListener } from "../lib";
+import {
+  constants,
+  debug,
+  getDollar,
+  utils,
+  parseTriggers,
+  parseActions,
+  addZjaxListener,
+  handleSwapError,
+} from "../lib";
 
 export async function parseSwaps(documentOrNode) {
   // Find all nodes with a z-swap attribute
@@ -14,7 +23,6 @@ export async function parseSwaps(documentOrNode) {
       for (const trigger of triggers) {
         const swapObject = parseSwapObject(trigger);
         const handlerFunction = getSwapFunction(trigger, swapObject);
-
         addZjaxListener(trigger, handlerFunction, true);
 
         debug(`Added z-swap for '${trigger.event}' events to ${utils.prettyNodeName(node)}`);
@@ -138,14 +146,18 @@ function getSwapFunction(trigger, swapObject) {
 
     try {
       // Call the action
-      const responseDOM = await getResponseDOM(
+      const [responseDOM, response] = await getResponseDOM(
         swapObject.method,
         swapObject.endpoint,
         swapObject.formData,
       );
 
-      const responseDOMToLog = responseDOM.body || responseDOM.documentElement;
-
+      if (!response.ok) {
+        // This can happen when the swap response is a 404, 500 or another error status
+        const $ = getDollar(trigger.node, event);
+        handleSwapError(response, trigger, swapObject.endpoint, $);
+        return;
+      }
       // Swap nodes
       for (const swap of swapObject.swaps) {
         const swappingEl = document.querySelector(swap.target);
@@ -189,15 +201,12 @@ async function getResponseDOM(method, endpoint, formData) {
       "Content-Type": "application/x-www-form-urlencoded",
     },
   });
-  if (!response.ok) {
-    throw new Error(`${response.status} ${response.statusText} for ${endpoint}`);
-    // Todo: Think of some way to let the developer handle
-    // this error to show a message to the user as an alert
-    // notice. Maybe just trigger a zjax-error event?
+  let responseDOM = null;
+  if (response.ok) {
+    responseDOM = new DOMParser().parseFromString(await response.text(), "text/html");
+    debug(`z-swap response from ${endpoint} received and parsed`);
   }
-  const responseDOM = new DOMParser().parseFromString(await response.text(), "text/html");
-  debug(`z-swap response from ${endpoint} received and parsed`);
-  return responseDOM;
+  return [responseDOM, response];
 }
 
 function getResponseAndTargetNodes(responseDOM, swap) {

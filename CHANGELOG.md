@@ -1,3 +1,7 @@
+## 2.0.4 - 2025-04-21
+- BREAKING CHANGE: Actions are now declared as an object, not a function (see docs)
+- Added support for global error handling
+
 ## 2.0.3 - 2025-04-20
 - Fixed DOM parsing bug which prevented zjax from parsing without turbo::load events (so it worked only with Rails)
 
