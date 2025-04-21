@@ -1,3 +1,7 @@
+## 3.0.1 - 2025-04-21
+- BREAKING CHANGE: Actions now declared as an object (not a function)
+- Support added for global swap response error handling
+
 ## 2.0.4 - 2025-04-21
 - BREAKING CHANGE: Actions are now declared as an object, not a function (see docs)
 - Added support for global error handling
