@@ -154,8 +154,8 @@ function getSwapFunction(trigger, swapObject) {
 
       if (!response.ok) {
         // This can happen when the swap response is a 404, 500 or another error status
-        const $ = getDollar(trigger.node, event);
-        handleSwapError(response, trigger, swapObject.endpoint, $);
+        const $ = getDollar(trigger.node, event, response);
+        handleSwapError($, trigger);
         return;
       }
       // Swap nodes

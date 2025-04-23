@@ -1,3 +1,6 @@
+## 3.0.2 - 2025-04-23
+- Added support for $.response for use within swap error handlers
+
 ## 3.0.1 - 2025-04-21
 - BREAKING CHANGE: Actions now declared as an object (not a function)
 - Support added for global swap response error handling

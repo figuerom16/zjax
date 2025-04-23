@@ -1,8 +1,9 @@
-export function handleSwapError(response, trigger, endpoint, $) {
+export function handleSwapError($, trigger) {
   // Is there a z-action @error handler on this node for this response code?
-  // TODO (this will need to use the trigger object)
+  // TODO: (this will need to use the trigger object)
 
   // Is there a global handler defined for this status code?
+  const response = $.response || {};
   if (zjax.errors[response.status]) {
     zjax.errors[response.status]($);
     return;

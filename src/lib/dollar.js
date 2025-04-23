@@ -1,4 +1,4 @@
-export function getDollar(node, event) {
+export function getDollar(node, event, response = null) {
   const $ = new Proxy(function () {}, {
     apply(_target, thisArg, args) {
       // This is where the function is called like $('nav > a.active')
@@ -31,6 +31,10 @@ export function getDollar(node, event) {
           window.location = url;
           return;
         };
+      }
+      // Handle $.response (for swap error handler only)
+      if (prop === "response") {
+        return response;
       }
     },
   });

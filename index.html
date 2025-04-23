@@ -2,15 +2,16 @@
 <html>
   <head>
     <link rel="stylesheet" href="https://cdn.simplecss.org/simple.min.css" />
-    <!-- <script type="module" src="/src/main.js"></script> -->
-    <script src="/dist/zjax.min.js"></script>
-    <!-- <script src="//unpkg.com/zjax@2.0.3"></script> -->
+    <script type="module" src="/src/main.js"></script>
+    <!-- <script src="/dist/zjax.min.js"></script> -->
+    <!-- <script src="//unpkg.com/zjax@3.0.1"></script> -->
     <script src="/src/ui.js"></script>
 
     <script>
       document.addEventListener("DOMContentLoaded", () => {
         zjax.errors = {
           404($) {
+            console.log("$.response", $.response);
             alert("not found");
           },
           500($) {
@@ -47,7 +48,7 @@
       <button type="submit">Go</button>
     </form>
 
-    <button z-swap="@click /test-500 img" style="margin: 4rem">Do It</button>
+    <button z-swap="@click /test-404 img" style="margin: 4rem">Do It</button>
 
     <h1 z-action="@click ui.alert">This is Zjax</h1>
     <h1 z-swap="@click /other.html h1">Index</h1>
