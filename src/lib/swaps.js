@@ -144,7 +144,6 @@ function getSwapFunction(trigger, swapObject) {
     swapObject.formData = new FormData(form ?? undefined)
     if (!form && trigger.node.name) swapObject.formData.append(trigger.node.name, trigger.node.value)
     if (!['file','image'].includes(trigger.node.type) && !form?.querySelector('input[type="file"], input[type="image"]')) swapObject.formData = new URLSearchParams(swapObject.formData)
-    if (swapObject.endpoint === '.') swapObject.endpoint = ''
     if (/GET|DELETE/.test(swapObject.method)){
         if (swapObject.formData.size) swapObject.endpoint += (/\?/.test(swapObject.endpoint) ? "&" : "?") + swapObject.formData
         swapObject.formData = null
