@@ -79,7 +79,7 @@ function parseSwapObject({ handlerString, node }) {
     } else if (node.tagName === "A") {
       swapObject.endpoint = node.href;
     } else {
-      throw new Error("No endpoint inferrable or specified");
+      swapObject.endpoint = ''
     }
   }
 
