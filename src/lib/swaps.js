@@ -139,7 +139,6 @@ function getSwaps(swapString) {
 
 function getSwapFunction(trigger, swapObject) {
   return async (proxy) => {
-    proxy.event.preventDefault()
     // Add formData to swapObject now at swap time (so form values are populated)
     let form = trigger.node.form || trigger.node.closest("form")
     swapObject.formData = new FormData(form ?? undefined)
