@@ -42,11 +42,13 @@
   </head>
 
   <body>
-    <form action="./submit" z-swap="@submit *">
+    <form action="./submit" z-swap="@submit.prevent POST">
       <input type="text" name="name" z-action="@input $('h1').innerText = $().value || ''" />
       <input id="phone" type="text" name="phone" />
       <button type="submit">Go</button>
     </form>
+
+    <input type="text" name="solo" z-swap="@input POST .">
 
     <button z-swap="@click /test-404 img" style="margin: 4rem">Do It</button>
 

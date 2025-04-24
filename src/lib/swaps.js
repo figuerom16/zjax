@@ -140,8 +140,15 @@ function getSwaps(swapString) {
 function getSwapFunction(trigger, swapObject) {
   return async (event) => {
     // Add formData to swapObject now at swap time (so form values are populated)
-    const formData = (trigger.node.tagName === "FORM" && new FormData(event.target)) || null;
-    swapObject.formData = formData ? convertFormDataToString(formData) : null;
+    let form = trigger.node.form || trigger.node.closest("form")
+    swapObject.formData = new FormData(form ?? undefined)
+    if (!form && trigger.node.name) swapObject.formData.append(trigger.node.name, trigger.node.value)
+    if (!['file','image'].includes(trigger.node.type) && !form?.querySelector('input[type="file"], input[type="image"]')) swapObject.formData = new URLSearchParams(swapObject.formData)
+    if (swapObject.endpoint === '.') swapObject.endpoint = ''
+    if (/GET|DELETE/.test(swapObject.method)){
+        if (swapObject.formData.size) swapObject.endpoint += (/\?/.test(swapObject.endpoint) ? "&" : "?") + swapObject.formData
+        swapObject.formData = null
+    }
     debug("z-swap triggered for", swapObject);
 
     try {
@@ -193,13 +200,10 @@ function getSwapFunction(trigger, swapObject) {
   };
 }
 
-async function getResponseDOM(method, endpoint, formData) {
+async function getResponseDOM(method, endpoint, body) {
   const response = await fetch(endpoint, {
-    method: method,
-    body: formData || null,
-    headers: {
-      "Content-Type": "application/x-www-form-urlencoded",
-    },
+    method,
+    body
   });
   let responseDOM = null;
   if (response.ok) {
@@ -452,12 +456,4 @@ function normalizeNodeList(node) {
 function collapseCommas(str) {
   // If commas have spaces next to them, remove those spaces.
   return str.replace(/\s*,\s*/g, ",");
-}
-
-function convertFormDataToString(formData) {
-  const urlEncodedData = new URLSearchParams();
-  for (const [key, value] of formData.entries()) {
-    urlEncodedData.append(key, value);
-  }
-  return urlEncodedData.toString();
 }
