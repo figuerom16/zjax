@@ -140,8 +140,8 @@ function getSwaps(swapString) {
 function getSwapFunction(trigger, swapObject) {
   return async (event) => {
     // Add formData to swapObject now at swap time (so form values are populated)
-    const formData = (trigger.node.tagName === "FORM" && new FormData(event.target)) || null;
-    swapObject.formData = formData ? convertFormDataToString(formData) : null;
+    const formData = (trigger.node.tagName === "FORM" && new FormData(trigger.node)) || null;
+    swapObject.formData = formData ? JSON.stringify(Object.fromEntries(formData.entries())) : null;
     debug("z-swap triggered for", swapObject);
 
     try {
@@ -452,12 +452,4 @@ function normalizeNodeList(node) {
 function collapseCommas(str) {
   // If commas have spaces next to them, remove those spaces.
   return str.replace(/\s*,\s*/g, ",");
-}
-
-function convertFormDataToString(formData) {
-  const urlEncodedData = new URLSearchParams();
-  for (const [key, value] of formData.entries()) {
-    urlEncodedData.append(key, value);
-  }
-  return urlEncodedData.toString();
 }
