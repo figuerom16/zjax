@@ -4,7 +4,7 @@
     <link rel="stylesheet" href="https://cdn.simplecss.org/simple.min.css" />
     <script type="module" src="/src/main.js"></script>
     <!-- <script src="/dist/zjax.min.js"></script> -->
-    <!-- <script src="//unpkg.com/zjax@3.0.1"></script> -->
+    <!-- <script src="//unpkg.com/zjax@3.0.2"></script> -->
     <script src="/src/ui.js"></script>
 
     <script>
@@ -42,7 +42,11 @@
   </head>
 
   <body>
+<<<<<<< HEAD
     <form action="./submit" z-swap="@submit.prevent POST">
+=======
+    <form action="./submit" method="post" z-swap="@submit.prevent form">
+>>>>>>> refs/remotes/origin/main
       <input type="text" name="name" z-action="@input $('h1').innerText = $().value || ''" />
       <input id="phone" type="text" name="phone" />
       <button type="submit">Go</button>
@@ -54,7 +58,7 @@
 
     <h1 z-action="@click ui.alert">This is Zjax</h1>
     <h1 z-swap="@click /other.html h1">Index</h1>
-    <a href="https://httpbin.org/html" z-swap="@mount.delay.2s p">Fetch Moby Dick</a>
+    <a href="https://httpbin.org/html" z-swap="@click.delay.2s p">Fetch Moby Dick</a>
     <p id="bkey" z-action="@keydown.window.meta.b alert">This will be replaced by Zjax.</p>
 
     <p z-action="@[keydown.window.any] console.log('you pressed:', $.event.key)">test keys</p>

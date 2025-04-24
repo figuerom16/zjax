@@ -1,3 +1,6 @@
+## 3.0.3 - 2025-04-24
+- Reworked FormData ro improve submission reliability and also to submit raw FormData object instead of converting to a string first
+
 ## 3.0.2 - 2025-04-23
 - Added support for $.response for use within swap error handlers
 
