@@ -145,25 +145,24 @@ function getSwapFunction(trigger, swapObject) {
     if (!form && trigger.node.name) swapObject.formData.append(trigger.node.name, trigger.node.value)
     if (!['file','image'].includes(trigger.node.type) && !form?.querySelector('input[type="file"], input[type="image"]')) swapObject.formData = new URLSearchParams(swapObject.formData)
     if (/GET|DELETE/.test(swapObject.method)){
-        if (swapObject.formData.size) swapObject.endpoint += (/\?/.test(swapObject.endpoint) ? "&" : "?") + swapObject.formData
-        swapObject.formData = null
+      if (swapObject.formData.size) swapObject.endpoint += (/\?/.test(swapObject.endpoint) ? "&" : "?") + swapObject.formData
+      swapObject.formData = null
     }
     debug("z-swap triggered for", swapObject);
 
     try {
-      // Call the action
-      const [responseDOM, response] = await getResponseDOM(
-        swapObject.method,
-        swapObject.endpoint,
-        swapObject.formData,
-      );
-
+      const response = await fetch(swapObject.endpoint, {
+        method: swapObject.method,
+        body: swapObject.formData
+      });
       if (!response.ok) {
         // This can happen when the swap response is a 404, 500 or another error status
         const $ = getDollar(trigger.node, event, response);
         handleSwapError($, trigger);
         return;
       }
+      const responseDOM = new DOMParser().parseFromString(await response.text(), "text/html");
+      debug(`z-swap response from ${swapObject.endpoint} received and parsed`);
       // Swap nodes
       for (const swap of swapObject.swaps) {
         const swappingEl = document.querySelector(swap.target);
@@ -197,19 +196,6 @@ function getSwapFunction(trigger, swapObject) {
       );
     }
   };
-}
-
-async function getResponseDOM(method, endpoint, body) {
-  const response = await fetch(endpoint, {
-    method,
-    body
-  });
-  let responseDOM = null;
-  if (response.ok) {
-    responseDOM = new DOMParser().parseFromString(await response.text(), "text/html");
-    debug(`z-swap response from ${endpoint} received and parsed`);
-  }
-  return [responseDOM, response];
 }
 
 function getResponseAndTargetNodes(responseDOM, swap) {
