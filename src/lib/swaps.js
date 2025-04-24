@@ -138,7 +138,8 @@ function getSwaps(swapString) {
 }
 
 function getSwapFunction(trigger, swapObject) {
-  return async (event) => {
+  return async (proxy) => {
+    proxy.event.preventDefault()
     // Add formData to swapObject now at swap time (so form values are populated)
     let form = trigger.node.form || trigger.node.closest("form")
     swapObject.formData = new FormData(form ?? undefined)
@@ -157,7 +158,7 @@ function getSwapFunction(trigger, swapObject) {
       });
       if (!response.ok) {
         // This can happen when the swap response is a 404, 500 or another error status
-        const $ = getDollar(trigger.node, event, response);
+        const $ = getDollar(trigger.node, proxy, response);
         handleSwapError($, trigger);
         return;
       }
